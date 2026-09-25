@@ -1,0 +1,35 @@
+{
+  "summary": "Verified NUOVA/NEW badge feature end-to-end. Backend: 5/5 pytest cases pass — premium users see exactly 10 is_new stories (incl. lez-prospettiva, lez-teoria-colore, lez-leggere-mappa), free users see 0, /api/user/premium toggle correctly flips visibility, arte category exposes new stories. Frontend browse (/browse?category_id=arte, viewport 390x844) with premium user shows the NEW pill on lez-prospettiva and lez-teoria-colore, 'Solo nuove'/'New only' toggle filters exactly to 2 rows (newCount=2 shown in pill). No console errors from story-meta-chips.tsx (only benign textShadow*/pointerEvents deprecations from other components). Home deck meta pill (-new segment) not reachable via automated E2E because the app forces onboarding on every launch (ALWAYS_SHOW_ONBOARDING=true in app/index.tsx) and the onboarding CTA is a swipe control that Playwright cannot activate; source-code review of story-meta-chips.tsx confirms the segment is rendered with testID `${idPrefix}-new` and label t.new_badge only when story.is_new, and non-new stories emit no -new segment. Pill uses flexShrink+maxWidth so it does not overflow.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_badge.py",
+    "/app/test_reports/pytest/pytest_results_new_badge.xml",
+    "/app/test_reports/browse_arte_premium.png",
+    "/app/test_reports/browse_only_new.png"
+  ],
+  "action_items": [
+    "app/index.tsx still ships ALWAYS_SHOW_ONBOARDING=true (test-phase flag also flagged in iteration_1). This forces onboarding on every launch and blocks direct Home deck automation; consider disabling before release so returning users land on Home and the NUOVA pill can be seen without re-doing onboarding.",
+    "Non-blocking React Native web deprecation warnings: 'textShadow*' style props and 'props.pointerEvents' — unrelated to this feature but worth cleaning up in a future pass."
+  ],
+  "critical_code_review_comments": [
+    "story-meta-chips.tsx wraps the -new label in Text and uses flexShrink on chips with maxWidth 100%: no overflow risk on 390-wide viewport.",
+    "browse.tsx onlyNew filter reads from api.stories() which already applies _early_filter server-side; the client-side filter is a safe intersection.",
+    "backend server.py: ensure_seed re-flags the last 10 stories to created_at=now every boot in an idempotent way (only touches docs in the wrong bucket) — good, but the logic assumes seed order is stable."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_badge.py",
+    "/app/test_reports/iteration_2.json"
+  ],
+  "success_rate": { "backend": "100%", "frontend": "100% (browse verified; home not reachable via automation)" },
+  "seed_data_creation": "Only ephemeral TEST_-prefixed user ids created via /api/user/premium and /api/user/{id}; no story/category seeds touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend NEW badge behaviour is locked by test_new_badge.py: premium=10 new (including lez-prospettiva/lez-teoria-colore/lez-leggere-mappa), free=0. Frontend browse pill + only-new toggle verified for EN locale (pill text was 'NEW' because browser locale=en; the same code path renders 'NUOVA' when useI18n() returns t.new_badge='NUOVA' — verify IT by setting user prefs lang=it if a locale regression is suspected). To reach Home deck E2E you must first flip ALWAYS_SHOW_ONBOARDING=false in app/index.tsx or drive the swipe control programmatically (mouse.move + mouse.down/up).",
+  "rca_of_issue": "No functional defect found. Home deck automation gap is caused by ALWAYS_SHOW_ONBOARDING=true (test flag), not by the NEW badge feature itself."
+}

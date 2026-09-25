@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend-only E2E verification (Expo web, 390x844) of the two new Home features and the deep-dive reading-progress bug fix. All 5 requested scenarios pass. (1) Resume flow: opened /deep-dive/v4-fulmini with a pre-seeded uid, waited >6s (past the 5s consumed mark), scrolled to page 2/3 via native scroll on data-testid=deep-dive-scroll; localStorage 'pause.reading.<uid>' contains {story.id:'v4-fulmini', page:2, progress:0.2857...}. Returning to /discover the resume-reading-card is visible with resume-reading-title='Cosa succede davvero in un fulmine' and resume-reading-progress='29%'. Tapping the card opens the reader with scrollTop=1688 (2×viewport = page 2). (2) Finish flow: scrolling to the last page removes 'pause.reading.<uid>' from localStorage and after returning to /discover the resume-reading-card is no longer visible. (3) Milestone: fresh uid at count=0 shows NO celebration and records pause.milestone.<uid>='0' silently; after posting /api/user/complete for 20 distinct stories and reloading, milestone-celebration is visible with milestone-number='20', milestone-tier='Curious reader' (EN locale) and milestone-body=\"You've read 20 stories. Next milestone: 40.\". Tapping milestone-continue closes the modal and persists pause.milestone.<uid>='20'; a subsequent reload does NOT show the celebration again. milestone-stats navigates to /stats. (4) Home progress bar: home-reading-goal shows '0 / 20' at count 0 and '20 / 40' at count 20. (5) No console errors from the new components (only the pre-existing textShadow*/pointerEvents deprecation warnings, ignored per request). Note: EN i18n was active on this browser; the code path also renders 'Lettore curioso' when useI18n().lang==='it'.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iter3_screens/01_home.png",
+    "/app/test_reports/iter3_screens/02_dd_intro.png",
+    "/app/test_reports/iter3_screens/03_dd_page2.png",
+    "/app/test_reports/iter3_screens/04_home_resume.png",
+    "/app/test_reports/iter3_screens/05_resume_reader.png",
+    "/app/test_reports/iter3_screens/06_last_page.png",
+    "/app/test_reports/iter3_screens/07_home_after_finish.png",
+    "/app/test_reports/iter3_screens/08_milestone.png",
+    "/app/test_reports/iter3_screens/09_stats.png"
+  ],
+  "action_items": [
+    "Non-blocking: app/index.tsx still has ALWAYS_SHOW_ONBOARDING=true (test-phase flag). E2E automation had to pre-seed pause.onboarded.v2='1' to bypass onboarding. Flip to false before release.",
+    "Non-blocking React Native web deprecation warnings ('textShadow*' style props and 'props.pointerEvents') originate from older components (not from resume-card/milestone-celebration); worth a future cleanup pass."
+  ],
+  "critical_code_review_comments": [
+    "src/reading-progress.ts: saveReadingProgress serializes only the light preview fields (toStoryPreview) — safe, no chapter blobs stored. getReadingProgress refreshes the story metadata for the 'curiosita' category with a graceful offline fallback. Good.",
+    "app/deep-dive/[id].tsx: the useEffect at ~L254-266 saves progress whenever `section` changes (touchedRef.current=true, section>0, section<lastSection) — this correctly persists mid-read positions and clears when section>=lastSection. Bug fix verified.",
+    "src/milestones.ts useReadingMilestone: correct 'first-run silent seed' behaviour — when the storage key is absent it writes the current milestone without triggering celebration. dismiss() persists the achieved value. Race-safety looks fine (cancelled flag + ref).",
+    "src/components/milestone-celebration.tsx: Modal + Reanimated confetti; sensible fallback to TOP_TIER above 100. Body copy correctly uses MILESTONE_STEP (20) for the 'next' value.",
+    "src/components/home-reading-progress.tsx: goal formula '(floor(count/20)+1)*20' produces '20/40' at 20 completions — matches the spec's requested next-multiple-of-20 goal."
+  ],
+  "updated_files": [
+    "/app/test_reports/iteration_3.json"
+  ],
+  "success_rate": { "backend": "n/a (not requested)", "frontend": "100% (5/5 scenarios pass)" },
+  "seed_data_creation": "Created three ephemeral anonymous uids in localStorage (test-uid-resume-001, test-uid-finish-002, test-uid-milestone-003). test-uid-milestone-003 was recorded on the backend with 20 completed stories via POST /api/user/complete — no story/category seeds were modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "To reach Home E2E without going through the swipe onboarding, pre-seed localStorage before navigating: pause.onboarded.v2='1' and pause.user_id='<uid>'. Reading progress is saved on scrollView with data-testid=deep-dive-scroll; on web set scrollTop and dispatch a 'scroll' event to trigger the reanimated onScroll handler (a >48px delta from autoY.value marks touched=true). v4-fulmini has 6 chapters -> 8 sections (scrollHeight=6752, clientHeight=844 at 390x844). Backend is already seeded with >200 stories accessible via GET /api/stories?user_id=<uid>&limit=25.",
+  "rca_of_issue": "n/a — no defects found. Original reader-progress bug (progress not saved after 5s consumed mark) is confirmed fixed: the save effect keyed on `section` runs on every page transition, not gated by the 5s completion timer; clearReadingProgress only runs when section>=lastSection."
+}
