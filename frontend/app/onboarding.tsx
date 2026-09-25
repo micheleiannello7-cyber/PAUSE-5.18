@@ -8,12 +8,13 @@ import Ionicons from "@react-native-vector-icons/ionicons";
 
 import * as Haptics from "expo-haptics";
 
-import { api } from "@/src/api";
+import { api, ProfileInput } from "@/src/api";
 import { makeStyles, useTheme, spacing, typography, radius, withAlpha } from "@/src/theme";
 import { getOrCreateUserId, setOnboarded } from "@/src/session";
 import { CategoryGrid, toggleInterest } from "@/src/components/category-grid";
 import { PagerDots } from "@/src/components/pager";
 import { OnboardingIntro } from "@/src/components/onboarding-intro";
+import { OnboardingProfile, ProfileDraft, MIN_NAME } from "@/src/components/onboarding-profile";
 import { ModeCards, ModeChips } from "@/src/components/onboarding-modes";
 import { OnboardingSwipe, SwipeDir } from "@/src/components/onboarding-swipe";
 import { OnboardingToast, OnboardingNotice } from "@/src/components/onboarding-toast";
@@ -23,8 +24,8 @@ import { useI18n } from "@/src/i18n";
 
 type Mode = "stories" | "lessons";
 
-// Fasi: 0 intro · 1 scelta formato (Curiosità / Mini lezioni) · 2 argomenti.
-const STEPS = 3;
+// Fasi: 0 intro · 1 profilo (nome/genere/età) · 2 scelta formato · 3 argomenti.
+const STEPS = 4;
 const LAYOUT = LinearTransition.duration(340).easing(Easing.inOut(Easing.cubic));
 const enterFrom = (dir: SwipeDir) => (dir > 0 ? FadeInRight : FadeInLeft).duration(380).easing(Easing.out(Easing.cubic));
 
@@ -37,6 +38,8 @@ export default function Onboarding() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [modes, setModes] = useState<Set<Mode>>(new Set<Mode>());
   const [saving, setSaving] = useState(false);
+  // Passo profilo: tutti i campi sono facoltativi (il nome non è obbligatorio).
+  const [profile, setProfile] = useState<ProfileDraft>({ name: "", gender: null, age: null });
   const { t } = useI18n();
   const styles = useStyles();
   const { colors } = useTheme();
@@ -45,7 +48,7 @@ export default function Onboarding() {
     queryFn: api.categories,
   });
 
-  const topics = step === 2;
+  const topics = step === 3;
   const canContinue = topics ? selected.size > 0 && modes.size > 0 : modes.size > 0;
 
   const toggleMode = (m: Mode) => {
@@ -70,7 +73,7 @@ export default function Onboarding() {
   const explainMissing = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     setNotice(
-      step === 2 && modes.size > 0
+      step === 3 && modes.size > 0
         ? { title: t.onb_need_topic_t, body: t.onb_need_topic_b, icon: "grid-outline" }
         : { title: t.onb_need_mode_t, body: t.onb_need_mode_b, icon: "layers-outline" },
     );
@@ -79,7 +82,7 @@ export default function Onboarding() {
   const canSwipe = (d: SwipeDir) => (d < 0 ? step > 0 : step === 0 || canContinue);
   const onSwipe = (d: SwipeDir) => {
     if (d < 0) { goTo(step - 1); return; }
-    if (step === 2) { onContinue(); return; }
+    if (step === 3) { onContinue(); return; }
     goTo(step + 1);
   };
   const onBlockedSwipe = (d: SwipeDir) => { if (d > 0) explainMissing(); };
@@ -91,6 +94,15 @@ export default function Onboarding() {
       const uid = await getOrCreateUserId();
       await api.setInterests(uid, Array.from(selected));
       await api.setContentModes(uid, Array.from(modes));
+      // Profilo facoltativo: invia solo i campi effettivamente compilati.
+      const prof: ProfileInput = {};
+      const name = profile.name.trim();
+      if (name.length >= MIN_NAME) prof.display_name = name;
+      if (profile.gender) prof.gender = profile.gender;
+      if (profile.age != null) prof.age = profile.age;
+      if (Object.keys(prof).length > 0) {
+        try { await api.setProfile(uid, prof); } catch {}
+      }
       await setOnboarded();
       router.replace("/(tabs)/discover");
     } finally {
@@ -108,6 +120,24 @@ export default function Onboarding() {
           <OnboardingIntro onContinue={() => goTo(1)} />
         </Animated.View>
       </OnboardingSwipe>
+    );
+  }
+
+  // ------------------------------------------------------- STEP 1 profilo (facoltativo)
+  if (step === 1) {
+    return (
+      <Animated.View key="profile" entering={enterFrom(dir)} style={styles.container}>
+        <OnboardingProfile
+          value={profile}
+          onChange={setProfile}
+          onBack={() => goTo(0)}
+          onContinue={() => goTo(2)}
+          canContinue
+          saving={false}
+          stepIndex={1}
+          steps={STEPS}
+        />
+      </Animated.View>
     );
   }
 
@@ -183,7 +213,7 @@ export default function Onboarding() {
         <Pressable
           onPress={() => {
             if (!canContinue) { explainMissing(); return; }
-            if (!topics) { goTo(2); return; }
+            if (!topics) { goTo(3); return; }
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
             onContinue();
           }}

@@ -55,6 +55,11 @@ export default function Discover() {
     queryKey: ["user", userId], queryFn: () => api.user(userId!), enabled: !!userId,
   });
   const interests = useMemo(() => userState?.interests?.filter((i) => i !== "all") ?? [], [userState?.interests]);
+  // Saluto personalizzato in Home: solo il primo nome/nickname, se impostato.
+  const firstName = useMemo(() => {
+    const n = userState?.display_name?.trim();
+    return n ? n.split(/\s+/)[0].slice(0, 18) : null;
+  }, [userState?.display_name]);
   const [focusCat, setFocusCat] = useState<string | null>(null);
   const deckInterests = useMemo(() => focusCat ? [focusCat] : interests, [focusCat, interests]);
   const interestsKey = deckInterests.join(",");
@@ -154,6 +159,12 @@ export default function Discover() {
     <View testID="home-screen" style={[styles.container, { paddingTop: insets.top }]}>
       <View style={[styles.header, { width }]} testID="home-header">
         <PauseLogo prominent />
+        {firstName ? (
+          <View style={styles.greeting} testID="home-greeting">
+            <Text style={styles.greetingHi} numberOfLines={1}>{t.greeting},</Text>
+            <Text style={styles.greetingName} numberOfLines={1} testID="home-greeting-name">{firstName}</Text>
+          </View>
+        ) : null}
       </View>
       <ScrollView testID="home-content" style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={[styles.column, { width }]}>
@@ -204,7 +215,10 @@ export default function Discover() {
 
 const useStyles = makeStyles((colors) => ({
   container: { flex: 1, backgroundColor: colors.surface, alignItems: "center" },
-  header: { paddingHorizontal: 12, height: 58, flexDirection: "row", alignItems: "center" },
+  header: { paddingHorizontal: 12, height: 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  greeting: { flexShrink: 1, marginLeft: spacing.md, alignItems: "flex-end" },
+  greetingHi: { color: colors.onSurfaceTertiary, fontFamily: typography.bodyMedium, fontSize: 11, letterSpacing: 0.3, lineHeight: 14 },
+  greetingName: { color: colors.brand, fontFamily: typography.displayBold, fontSize: 17, letterSpacing: -0.2, lineHeight: 21, maxWidth: 170 },
   scroll: { flex: 1, alignSelf: "stretch" },
   content: { flexGrow: 1, alignItems: "center", paddingBottom: 18 },
   column: { flexGrow: 1 },
