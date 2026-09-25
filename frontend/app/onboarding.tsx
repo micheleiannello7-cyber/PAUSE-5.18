@@ -134,8 +134,6 @@ export default function Onboarding() {
           onContinue={() => goTo(2)}
           canContinue
           saving={false}
-          stepIndex={1}
-          steps={STEPS}
         />
       </Animated.View>
     );

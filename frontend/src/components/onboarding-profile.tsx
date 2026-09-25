@@ -17,7 +17,6 @@ import { useI18n } from "@/src/i18n";
 import { Gender } from "@/src/api";
 import { radius, spacing, typography, withAlpha } from "@/src/theme";
 import { OnboardingBrand } from "./onboarding-brand";
-import { PagerDots } from "./pager";
 import { ONB } from "./onboarding-palette";
 
 const ARTWORK = require("../../assets/images/onboarding-profile-bg.jpg");
@@ -30,24 +29,23 @@ export const MIN_NAME = 2;
 
 export type ProfileDraft = { name: string; gender: Gender | null; age: number | null };
 
-export function OnboardingProfile({ value, onChange, onBack, onContinue, canContinue, saving, stepIndex, steps }: {
+export function OnboardingProfile({ value, onChange, onBack, onContinue, canContinue, saving }: {
   value: ProfileDraft;
   onChange: (next: ProfileDraft) => void;
   onBack: () => void;
   onContinue: () => void;
   canContinue: boolean;
   saving: boolean;
-  stepIndex: number;
-  steps: number;
 }) {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const [focused, setFocused] = useState(false);
   const [agePickerOpen, setAgePickerOpen] = useState(false);
-  const brandUnit = Math.min(width, 430) / 984 * 0.62;
-  const brandHeight = 300 * brandUnit + 60 * brandUnit;
-  const titleSize = Math.min(34, Math.max(26, width * 0.082));
+  // Logo più piccolo della presentazione (nel mockup l'anello è ~13% della larghezza).
+  const brandUnit = Math.min(width, 430) / 984 * 0.6;
+  const brandHeight = 372 * brandUnit;
+  const titleSize = Math.min(31, Math.max(24, width * 0.074));
   const [titleLine1, titleLine2] = t.onb_profile_title_a.split("\n");
 
   const setGender = (g: Gender) => {
@@ -58,34 +56,42 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
   return (
     <View style={styles.root} testID="onboarding-profile">
       <Image source={ARTWORK} contentFit="cover" contentPosition="center" cachePolicy="memory-disk" accessible={false} testID="onboarding-profile-artwork" style={StyleSheet.absoluteFill} />
-      {/* Veli: cielo leggibile in alto, scena visibile al centro, fondo scuro per le schede e la CTA. */}
-      <LinearGradient pointerEvents="none" colors={[withAlpha(ONB.bgTop, 0.55), withAlpha(ONB.bgTop, 0.15), withAlpha(ONB.bgTop, 0.55), withAlpha(ONB.bgTop, 0.88), withAlpha(ONB.bgTop, 0.96)]} locations={[0, 0.2, 0.42, 0.7, 1]} style={StyleSheet.absoluteFill} />
+      {/* Veli: cielo leggermente scurito per il logo, pianeta/lago ben visibili dietro al titolo,
+          fondo progressivamente scuro dove poggiano le schede e la CTA (come nel mockup). */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.3), withAlpha(ONB.bgTop, 0.24), withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.82), withAlpha(ONB.bgTop, 0.9), withAlpha(ONB.bgTop, 0.8)]}
+        locations={[0, 0.12, 0.3, 0.44, 0.6, 0.82, 1]}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
         <ScrollView
-          style={styles.root}
-          contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + spacing.lg, minHeight: height }]}
+          style={styles.fill}
+          contentContainerStyle={[styles.content, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + spacing.md, minHeight: height }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           bounces={false}
           testID="onboarding-profile-scroll"
         >
-          <Pressable onPress={onBack} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.onb_profile_back} testID="onboarding-profile-back" style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
-            <Ionicons name="arrow-back" size={22} color={ONB.text} />
-          </Pressable>
-
-          <View style={{ height: brandHeight }}>
-            <OnboardingBrand unit={brandUnit} top={-16 * brandUnit} />
+          {/* Barra alta: freccia indietro a sinistra, logo centrato alla stessa altezza. */}
+          <View style={[styles.header, { height: brandHeight }]}>
+            <Pressable onPress={onBack} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.onb_profile_back} testID="onboarding-profile-back" style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
+              <Ionicons name="arrow-back" size={22} color={ONB.text} />
+            </Pressable>
+            <OnboardingBrand unit={brandUnit} top={0} />
           </View>
 
           <View style={styles.titleWrap}>
-            <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.16 }]} testID="onboarding-profile-title">{titleLine1}</Text>
+            <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.18 }]} testID="onboarding-profile-title">{titleLine1}</Text>
             <View style={styles.titleRow}>
-              <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.16 }]}>{titleLine2}</Text>
+              <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.18 }]}>{titleLine2}</Text>
               <GradientWord word={t.onb_profile_title_b} fontSize={titleSize} />
             </View>
             <Text style={styles.subtitle} testID="onboarding-profile-subtitle">{t.onb_profile_sub}</Text>
           </View>
+
+          <View style={styles.spacer} />
 
           {/* Nome o nickname */}
           <GlassField icon="person-outline" glow={focused} testID="onboarding-profile-name-card">
@@ -134,6 +140,8 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
             </Pressable>
           </GlassField>
 
+          <View style={styles.spacerSm} />
+
           <View style={styles.footer}>
             <Pressable
               onPress={onContinue}
@@ -147,12 +155,17 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
                 <LinearGradient colors={[...CTA_FILL]} locations={[0, 0.3, 0.55, 0.8, 1]} start={{ x: 0, y: 0.7 }} end={{ x: 1, y: 0.3 }} style={styles.ctaFill}>
                   <LinearGradient colors={["#FFFFFF38", "#FFFFFF0E", "#FFFFFF00", "#12063A2A"]} locations={[0, 0.28, 0.55, 1]} style={StyleSheet.absoluteFill} />
                   <Text style={styles.ctaText} testID="onboarding-profile-continue-label">{t.onb_modes_next}</Text>
-                  <Ionicons name="arrow-forward" size={20} color={ONB.text} />
+                  <Ionicons name="arrow-forward" size={22} color={ONB.text} />
                 </LinearGradient>
               </LinearGradient>
             </Pressable>
-            <PagerDots count={steps} index={stepIndex} color={ONB.cyan} style={styles.dots} testID="onboarding-profile-dots" />
+            {/* Tre indicatori come nel mockup (stesso stile della presentazione); questo è il secondo passo. */}
+            <View style={styles.dots} accessible={false} testID="onboarding-profile-dots">
+              {[0, 1, 2].map((i) => <View key={i} testID={`onboarding-profile-dot-${i}`} style={[styles.dot, i === 1 && styles.dotOn]} />)}
+            </View>
           </View>
+
+          <View style={styles.spacerLg} />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -238,54 +251,66 @@ function AgePicker({ visible, value, onClose, onPick }: { visible: boolean; valu
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: ONB.bgTop },
-  content: { paddingHorizontal: 28 },
+  fill: { flex: 1, backgroundColor: "transparent" },
+  content: { paddingHorizontal: 28, flexGrow: 1 },
+  header: { position: "relative" },
   back: {
-    position: "absolute", left: 28, top: 0, zIndex: 2, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center",
-    backgroundColor: withAlpha(ONB.glassTop, 0.55), borderWidth: 1, borderColor: ONB.glassBorder,
+    position: "absolute", left: 0, top: 0, zIndex: 2, width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center",
+    backgroundColor: withAlpha(ONB.glassTop, 0.5), borderWidth: 1, borderColor: ONB.glassBorderStrong,
+    boxShadow: `0px 4px 18px ${withAlpha(ONB.bgTop, 0.5)}` as any,
   },
   pressed: { opacity: 0.8 },
-  titleWrap: { alignItems: "center", marginTop: 6, marginBottom: 22 },
+  spacer: { flexGrow: 1, minHeight: 22 },
+  spacerSm: { flexGrow: 0.7, minHeight: 14 },
+  spacerLg: { flexGrow: 1.6, minHeight: 8 },
+  titleWrap: { alignItems: "center", marginTop: 18 },
   titleRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center" },
   title: {
     color: ONB.text, fontFamily: typography.displayBold, textAlign: "center", letterSpacing: -0.6, includeFontPadding: false,
-    textShadowColor: withAlpha(ONB.cyan, 0.25), textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18,
+    textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14,
   },
-  subtitle: { color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 14, paddingHorizontal: 8 },
+  subtitle: {
+    color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 14, paddingHorizontal: 6,
+    textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
+  },
   card: {
-    borderRadius: 30, overflow: "hidden", borderWidth: 1, borderColor: ONB.glassBorder, marginBottom: 16,
-    backgroundColor: withAlpha(ONB.glassBottom, 0.7), boxShadow: `0px 8px 28px ${withAlpha(ONB.bgTop, 0.55)}` as any,
+    borderRadius: 30, overflow: "hidden", borderWidth: 1, borderColor: "rgba(72,160,255,0.34)", marginBottom: 16,
+    backgroundColor: withAlpha(ONB.glassBottom, 0.72),
+    boxShadow: `0px 0px 18px ${withAlpha(ONB.cyan, 0.10)}, 0px 10px 30px ${withAlpha(ONB.bgTop, 0.6)}` as any,
   },
-  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.55), boxShadow: `0px 0px 22px ${withAlpha(ONB.cyan, 0.22)}` as any },
-  cardEdge: { position: "absolute", left: 24, right: 24, bottom: 0, height: 1.5 },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 16, paddingLeft: 14, paddingRight: 18 },
+  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.6), boxShadow: `0px 0px 24px ${withAlpha(ONB.cyan, 0.26)}` as any },
+  cardEdge: { position: "absolute", left: 22, right: 22, bottom: 0, height: 1.5 },
+  cardRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 16, paddingLeft: 12, paddingRight: 16 },
   iconWrap: {
-    width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center",
-    backgroundColor: withAlpha(ONB.glassTop, 0.9), borderWidth: 1, borderColor: ONB.glassBorderStrong,
+    width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center",
+    backgroundColor: withAlpha(ONB.glassTop, 0.85), borderWidth: 1, borderColor: ONB.glassBorderStrong,
   },
   cardBody: { flex: 1, minWidth: 0, gap: 8 },
   label: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 15.5, lineHeight: 19 },
   input: { color: ONB.text, fontFamily: typography.body, fontSize: 15, lineHeight: 20, paddingVertical: 2, paddingHorizontal: 0, minHeight: 24, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : null) },
   chips: { flexDirection: "row", gap: 10 },
   chip: {
-    flex: 1, minHeight: 46, borderRadius: radius.pill, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
-    backgroundColor: withAlpha(ONB.glassTop, 0.55), borderWidth: 1, borderColor: ONB.glassBorder,
+    flex: 1, minHeight: 44, borderRadius: radius.pill, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
+    backgroundColor: withAlpha(ONB.glassTop, 0.5), borderWidth: 1, borderColor: ONB.glassBorderStrong,
   },
-  chipOn: { borderColor: withAlpha(ONB.cyan, 0.9), boxShadow: `0px 0px 16px ${withAlpha(ONB.cyan, 0.45)}` as any },
+  chipOn: { borderColor: withAlpha(ONB.cyan, 0.95), boxShadow: `0px 0px 16px ${withAlpha(ONB.cyan, 0.45)}` as any },
   chipText: { color: ONB.textSecondary, fontFamily: typography.bodyMedium, fontSize: 15 },
   chipTextOn: { color: ONB.text, fontFamily: typography.bodyBold },
   select: {
-    minHeight: 48, borderRadius: radius.pill, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18,
-    backgroundColor: withAlpha(ONB.bgTop, 0.6), borderWidth: 1, borderColor: ONB.glassBorder,
+    minHeight: 48, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16,
+    backgroundColor: withAlpha(ONB.bgTop, 0.55), borderWidth: 1, borderColor: ONB.glassBorderStrong,
   },
   selectText: { color: ONB.text, fontFamily: typography.bodyMedium, fontSize: 15 },
   selectPlaceholder: { color: ONB.textSecondary, fontFamily: typography.body },
-  footer: { marginTop: "auto", paddingTop: 8 },
-  cta: { height: 60, borderRadius: 30, overflow: "hidden", boxShadow: `0px 0px 26px ${withAlpha(ONB.cyan, 0.28)}, 0px 10px 30px ${withAlpha("#5B3BF5", 0.35)}` as any },
-  ctaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  footer: { paddingTop: 4 },
+  cta: { height: 60, borderRadius: 30, overflow: "hidden", boxShadow: "0px 10px 36px #4A5CFF80, -6px 0px 22px #A63BFF55, 6px 0px 22px #2BC6FF55" as any },
+  ctaPressed: { opacity: 0.9, transform: [{ scale: 0.985 }] },
   ctaBorder: { flex: 1, padding: 1.4, borderRadius: 30, overflow: "hidden" },
   ctaFill: { flex: 1, borderRadius: 30, overflow: "hidden", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
-  ctaText: { color: ONB.text, fontFamily: typography.displayBold, fontSize: 19, letterSpacing: -0.3, includeFontPadding: false },
-  dots: { alignSelf: "center", marginTop: 22 },
+  ctaText: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 19, includeFontPadding: false },
+  dots: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 24 },
+  dot: { width: 8, height: 8, borderRadius: 8, backgroundColor: "#2B3A66" },
+  dotOn: { width: 12, backgroundColor: "#7FE3FF", boxShadow: "0px 0px 12px #41AEFFAA" as any },
   sheetBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(ONB.bgTop, 0.7) },
   sheet: { maxHeight: "60%", borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: ONB.glassBorderStrong, paddingTop: 10, paddingHorizontal: spacing.lg },
   sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: ONB.glassBorderStrong, marginBottom: 12 },

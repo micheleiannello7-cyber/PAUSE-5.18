@@ -78,3 +78,8 @@ Mobile Expo app (React Native + FastAPI + MongoDB) that turns idle moments into 
 - **Saluto personalizzato in Home** (`app/(tabs)/discover.tsx`): header mostra "Ciao/Hi, {primo nome}" a destra del logo, nome in `colors.brand` (accento adattivo chiaro/scuro) con font display. Nuova chiave i18n `greeting` (IT/EN). Scelta di design: solo in Home (non su tutte le schermate); il nome resta comunque visibile nella scheda Profilo.
 - Verificato E2E sul web: intro → profilo (nome "Marco") → formato → argomenti → Home con "Hi, Marco".
 
+
+## Onboarding profilo — rifatto fedele al mockup (2026-09-25, fork)
+- Bug: `KeyboardAvoidingView`/`ScrollView` usavano `styles.root` (sfondo opaco) e coprivano lo sfondo `onboarding-profile-bg.jpg` → schermata nera. Ora `styles.fill` trasparente.
+- Layout come mockup: freccia indietro e logo sulla stessa riga, titolo con "te" in gradiente, 3 schede glass (bordo blu/ciano + filo luminoso), select età a angoli arrotondati, CTA gradiente identica alla presentazione, **3 puntini stile presentazione** (secondo attivo). Spazi distribuiti con spacer flessibili (scroll su schermi bassi).
+- Rimosse props `stepIndex/steps` da `OnboardingProfile`.
