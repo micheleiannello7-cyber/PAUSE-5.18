@@ -5,7 +5,7 @@
 // dell'onboarding (identica in tema chiaro e scuro).
 import React, { useMemo, useRef, useState } from "react";
 import {
-  FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions,
+  Dimensions, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,6 +23,15 @@ const ARTWORK = require("../../assets/images/onboarding-profile-bg.jpg");
 // Stesso gradiente del pulsante della presentazione (riferimento fisso del brand).
 const CTA_BORDER = ["#E08CFF", "#7FA0FF", "#7FEBFF"] as const;
 const CTA_FILL = ["#8A2BE8", "#5B3BF5", "#3556F2", "#2A8CF0", "#22C4F2"] as const;
+// Colori campionati dal mockup (schede navy quasi opache, bordo blu, filo ciano).
+const CARD_TOP = "rgba(8,38,72,0.82)";
+const CARD_BOTTOM = "rgba(4,26,52,0.86)";
+const BORDER = "rgba(24,110,190,0.62)";
+const EDGE = "#2BB4FF";
+const ICON_FILL = "rgba(15,34,58,0.98)";
+const CHIP_FILL = "rgba(8,22,50,0.8)";
+const SELECT_FILL = "rgba(4,17,32,0.92)";
+const PLACEHOLDER = "#8FA6C9";
 const AGES = Array.from({ length: 108 }, (_, i) => 13 + i); // 13 … 120
 const AGE_ROW = 52;
 export const MIN_NAME = 2;
@@ -39,7 +48,10 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 }) {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  // Cornice congelata al primo render: su Android la finestra si restringe quando
+  // appare/scompare la tastiera e lo sfondo "ballerebbe"; qui resta fisso.
+  const [frame] = useState(() => Dimensions.get("window"));
+  const { width, height } = frame;
   const [focused, setFocused] = useState(false);
   const [agePickerOpen, setAgePickerOpen] = useState(false);
   // Logo più piccolo della presentazione (nel mockup l'anello è ~13% della larghezza).
@@ -55,17 +67,18 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 
   return (
     <View style={styles.root} testID="onboarding-profile">
-      <Image source={ARTWORK} contentFit="cover" contentPosition="center" cachePolicy="memory-disk" accessible={false} testID="onboarding-profile-artwork" style={StyleSheet.absoluteFill} />
-      {/* Veli: cielo leggermente scurito per il logo, pianeta/lago ben visibili dietro al titolo,
-          fondo progressivamente scuro dove poggiano le schede e la CTA (come nel mockup). */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.3), withAlpha(ONB.bgTop, 0.24), withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.82), withAlpha(ONB.bgTop, 0.9), withAlpha(ONB.bgTop, 0.8)]}
-        locations={[0, 0.12, 0.3, 0.44, 0.6, 0.82, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+      <View pointerEvents="none" style={[styles.backdrop, { width, height }]}>
+        <Image source={ARTWORK} contentFit="cover" contentPosition="center" transition={0} cachePolicy="memory-disk" accessible={false} testID="onboarding-profile-artwork" style={StyleSheet.absoluteFill} />
+        {/* Veli: cielo leggermente scurito per il logo, pianeta/lago visibili dietro al titolo,
+            fondo progressivamente scuro dove poggiano le schede e la CTA (come nel mockup). */}
+        <LinearGradient
+          colors={[withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.3), withAlpha(ONB.bgTop, 0.24), withAlpha(ONB.bgTop, 0.6), withAlpha(ONB.bgTop, 0.84), withAlpha(ONB.bgTop, 0.9), withAlpha(ONB.bgTop, 0.8)]}
+          locations={[0, 0.12, 0.3, 0.44, 0.6, 0.82, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
-      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0}>
+      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           style={styles.fill}
           contentContainerStyle={[styles.content, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + spacing.md, minHeight: height }]}
@@ -100,7 +113,7 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
               value={value.name}
               onChangeText={(name) => onChange({ ...value, name: name.slice(0, 40) })}
               placeholder={t.onb_profile_name_ph}
-              placeholderTextColor={ONB.muted}
+              placeholderTextColor={PLACEHOLDER}
               style={styles.input}
               autoCapitalize="words"
               autoCorrect={false}
@@ -121,7 +134,7 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
                 const on = value.gender === g;
                 return (
                   <Pressable key={g} onPress={() => setGender(g)} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`onboarding-profile-gender-${g}`} style={({ pressed }) => [styles.chip, on && styles.chipOn, pressed && styles.pressed]}>
-                    {on ? <LinearGradient colors={["#0B6E9C", "#12A8D6", ONB.cyan]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
+                    {on ? <LinearGradient colors={["#064B80", "#0B6FA0", "#0E88B6"]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
                     <Text style={[styles.chipText, on && styles.chipTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{label}</Text>
                   </Pressable>
                 );
@@ -182,7 +195,7 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 // Parola finale del titolo con riempimento ciano→viola (come nel mockup).
 function GradientWord({ word, fontSize }: { word: string; fontSize: number }) {
   const w = Math.ceil(fontSize * 0.62 * word.length) + 4;
-  const h = Math.ceil(fontSize * 1.16);
+  const h = Math.ceil(fontSize * 1.18);
   return (
     <Svg width={w} height={h} testID="onboarding-profile-title-accent">
       <Defs>
@@ -196,12 +209,14 @@ function GradientWord({ word, fontSize }: { word: string; fontSize: number }) {
   );
 }
 
+// Scheda del mockup: navy scuro quasi opaco, bordo blu sottile che si accende
+// in ciano sul fondo, cerchio icona a sinistra.
 function GlassField({ icon, glow, testID, children }: { icon: string; glow?: boolean; testID: string; children: React.ReactNode }) {
   return (
     <View style={[styles.card, glow && styles.cardGlow]} testID={testID}>
-      <LinearGradient colors={[withAlpha(ONB.glassTop, 0.78), withAlpha(ONB.glassBottom, 0.9)]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <LinearGradient colors={[CARD_TOP, CARD_BOTTOM]} style={StyleSheet.absoluteFill} pointerEvents="none" />
       {/* Filo luminoso ciano sul bordo inferiore, come nel mockup. */}
-      <LinearGradient pointerEvents="none" colors={[withAlpha(ONB.cyan, 0), withAlpha(ONB.cyan, 0.55), withAlpha(ONB.cyan, 0)]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cardEdge} />
+      <LinearGradient pointerEvents="none" colors={[withAlpha(EDGE, 0), EDGE, withAlpha(EDGE, 0)]} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cardEdge} />
       <View style={styles.cardRow}>
         <View style={styles.iconWrap}>
           <Ionicons name={icon as any} size={24} color={ONB.text} />
@@ -250,67 +265,69 @@ function AgePicker({ visible, value, onClose, onPick }: { visible: boolean; valu
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: ONB.bgTop },
+  root: { flex: 1, backgroundColor: ONB.bgTop, overflow: "hidden" },
+  backdrop: { position: "absolute", top: 0, left: 0 },
   fill: { flex: 1, backgroundColor: "transparent" },
   content: { paddingHorizontal: 28, flexGrow: 1 },
   header: { position: "relative" },
   back: {
-    position: "absolute", left: 0, top: 0, zIndex: 2, width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center",
-    backgroundColor: withAlpha(ONB.glassTop, 0.5), borderWidth: 1, borderColor: ONB.glassBorderStrong,
-    boxShadow: `0px 4px 18px ${withAlpha(ONB.bgTop, 0.5)}` as any,
+    position: "absolute", left: -6, top: 2, zIndex: 2, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center",
+    backgroundColor: "rgba(12,26,52,0.72)", borderWidth: 1, borderColor: "rgba(120,170,230,0.32)",
   },
   pressed: { opacity: 0.8 },
-  spacer: { flexGrow: 1, minHeight: 22 },
-  spacerSm: { flexGrow: 0.7, minHeight: 14 },
-  spacerLg: { flexGrow: 1.6, minHeight: 8 },
-  titleWrap: { alignItems: "center", marginTop: 18 },
+  spacer: { flexGrow: 1.1, minHeight: 22 },
+  spacerSm: { flexGrow: 0.9, minHeight: 20 },
+  spacerLg: { flexGrow: 2.4, minHeight: 12 },
+  titleWrap: { alignItems: "center", marginTop: 34 },
   titleRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center" },
   title: {
     color: ONB.text, fontFamily: typography.displayBold, textAlign: "center", letterSpacing: -0.6, includeFontPadding: false,
     textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14,
   },
   subtitle: {
-    color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 14, paddingHorizontal: 6,
+    color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 12, paddingHorizontal: 6,
     textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
   },
+  // Geometria dal mockup: raggio ≈ 1/3 dell'altezza, distanza 12 tra le schede,
+  // bordo blu 1.5 px con leggero alone, fondo navy quasi opaco.
   card: {
-    borderRadius: 30, overflow: "hidden", borderWidth: 1, borderColor: "rgba(72,160,255,0.34)", marginBottom: 16,
-    backgroundColor: withAlpha(ONB.glassBottom, 0.72),
-    boxShadow: `0px 0px 18px ${withAlpha(ONB.cyan, 0.10)}, 0px 10px 30px ${withAlpha(ONB.bgTop, 0.6)}` as any,
+    borderRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginBottom: 12,
+    backgroundColor: CARD_BOTTOM,
+    boxShadow: `0px 4px 18px ${withAlpha(EDGE, 0.16)}, 0px 10px 28px ${withAlpha(ONB.bgTop, 0.6)}` as any,
   },
-  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.6), boxShadow: `0px 0px 24px ${withAlpha(ONB.cyan, 0.26)}` as any },
-  cardEdge: { position: "absolute", left: 22, right: 22, bottom: 0, height: 1.5 },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 16, paddingLeft: 12, paddingRight: 16 },
+  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.7), boxShadow: `0px 0px 22px ${withAlpha(ONB.cyan, 0.26)}` as any },
+  cardEdge: { position: "absolute", left: 26, right: 26, bottom: 0, height: 2, borderRadius: 1 },
+  cardRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16, paddingLeft: 12, paddingRight: 16 },
   iconWrap: {
-    width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center",
-    backgroundColor: withAlpha(ONB.glassTop, 0.85), borderWidth: 1, borderColor: ONB.glassBorderStrong,
+    width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center",
+    backgroundColor: ICON_FILL, borderWidth: 1, borderColor: "rgba(120,170,230,0.32)",
   },
-  cardBody: { flex: 1, minWidth: 0, gap: 8 },
-  label: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 15.5, lineHeight: 19 },
-  input: { color: ONB.text, fontFamily: typography.body, fontSize: 15, lineHeight: 20, paddingVertical: 2, paddingHorizontal: 0, minHeight: 24, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : null) },
-  chips: { flexDirection: "row", gap: 10 },
+  cardBody: { flex: 1, minWidth: 0, gap: 7 },
+  label: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 14.5, lineHeight: 18 },
+  input: { color: ONB.text, fontFamily: typography.body, fontSize: 14, lineHeight: 20, paddingVertical: 1, paddingHorizontal: 0, minHeight: 22, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : null) },
+  chips: { flexDirection: "row", gap: 7, marginTop: 2 },
   chip: {
-    flex: 1, minHeight: 44, borderRadius: radius.pill, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
-    backgroundColor: withAlpha(ONB.glassTop, 0.5), borderWidth: 1, borderColor: ONB.glassBorderStrong,
+    flex: 1, minHeight: 42, borderRadius: radius.pill, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
+    backgroundColor: CHIP_FILL, borderWidth: 1, borderColor: "rgba(110,165,235,0.4)",
   },
-  chipOn: { borderColor: withAlpha(ONB.cyan, 0.95), boxShadow: `0px 0px 16px ${withAlpha(ONB.cyan, 0.45)}` as any },
-  chipText: { color: ONB.textSecondary, fontFamily: typography.bodyMedium, fontSize: 15 },
+  chipOn: { borderColor: withAlpha(ONB.cyan, 0.9), boxShadow: `0px 0px 12px ${withAlpha(ONB.cyan, 0.32)}` as any },
+  chipText: { color: "#D5E0F3", fontFamily: typography.bodyMedium, fontSize: 14 },
   chipTextOn: { color: ONB.text, fontFamily: typography.bodyBold },
   select: {
-    minHeight: 48, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16,
-    backgroundColor: withAlpha(ONB.bgTop, 0.55), borderWidth: 1, borderColor: ONB.glassBorderStrong,
+    minHeight: 44, borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, marginTop: 2,
+    backgroundColor: SELECT_FILL, borderWidth: 1, borderColor: "rgba(110,165,235,0.36)",
   },
-  selectText: { color: ONB.text, fontFamily: typography.bodyMedium, fontSize: 15 },
-  selectPlaceholder: { color: ONB.textSecondary, fontFamily: typography.body },
-  footer: { paddingTop: 4 },
-  cta: { height: 60, borderRadius: 30, overflow: "hidden", boxShadow: "0px 10px 36px #4A5CFF80, -6px 0px 22px #A63BFF55, 6px 0px 22px #2BC6FF55" as any },
+  selectText: { color: ONB.text, fontFamily: typography.bodyMedium, fontSize: 14 },
+  selectPlaceholder: { color: "#C2CFE6", fontFamily: typography.body },
+  footer: { paddingTop: 0, paddingHorizontal: 4 },
+  cta: { height: 54, borderRadius: 27, overflow: "hidden", boxShadow: "0px 10px 36px #4A5CFF80, -6px 0px 22px #A63BFF55, 6px 0px 22px #2BC6FF55" as any },
   ctaPressed: { opacity: 0.9, transform: [{ scale: 0.985 }] },
-  ctaBorder: { flex: 1, padding: 1.4, borderRadius: 30, overflow: "hidden" },
-  ctaFill: { flex: 1, borderRadius: 30, overflow: "hidden", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
-  ctaText: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 19, includeFontPadding: false },
-  dots: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 24 },
-  dot: { width: 8, height: 8, borderRadius: 8, backgroundColor: "#2B3A66" },
-  dotOn: { width: 12, backgroundColor: "#7FE3FF", boxShadow: "0px 0px 12px #41AEFFAA" as any },
+  ctaBorder: { flex: 1, padding: 1.4, borderRadius: 27, overflow: "hidden" },
+  ctaFill: { flex: 1, borderRadius: 27, overflow: "hidden", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
+  ctaText: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 18, includeFontPadding: false },
+  dots: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, marginTop: 18 },
+  dot: { width: 6, height: 6, borderRadius: 6, backgroundColor: "#22345F" },
+  dotOn: { width: 10, backgroundColor: "#37D3FF", boxShadow: "0px 0px 10px #37D3FFAA" as any },
   sheetBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(ONB.bgTop, 0.7) },
   sheet: { maxHeight: "60%", borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: ONB.glassBorderStrong, paddingTop: 10, paddingHorizontal: spacing.lg },
   sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: ONB.glassBorderStrong, marginBottom: 12 },
