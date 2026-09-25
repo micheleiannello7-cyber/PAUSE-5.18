@@ -85,3 +85,16 @@ Mobile Expo app (React Native + FastAPI + MongoDB) that turns idle moments into 
 - Rimosse props `stepIndex/steps` da `OnboardingProfile`.
 - Iterazione 2 (stile container "identico al mockup"): colori campionati dal PNG (fill navy rgba(4,26,52,.86)→rgba(8,38,72,.82), bordo 1px rgba(24,110,190,.62), filo ciano #2BB4FF sul fondo, raggio 28, gap 12, cerchio icona 50 #0F223A, chip pill 1px, chip selezionata gradiente #064B80→#0E88B6 con bordo ciano, select età raggio 14 fill #041120). Confronto side-by-side con `analyze_file_tool` → 98/100 "replica fedele".
 - Sfondo stabile: cornice congelata con `Dimensions.get("window")` al primo render (niente `useWindowDimensions`), KAV `behavior` solo su iOS → su Android l'apertura/chiusura tastiera non ridimensiona più l'immagine.
+
+## Dati personali — correzione esclusivamente visiva (richiesta corrente)
+- L'utente ha rifiutato la precedente interpretazione blu/opaca: la valutazione «98/100» precedente NON costituisce approvazione. Vincoli: non cambiare testi, titolo, CTA, ordine, funzioni, salvataggio, navigazione né immagine.
+- Resa grafica modificata solo in `frontend/src/components/onboarding-profile.tsx`; in `app/onboarding.tsx` aggiunto un contenitore di ritaglio esclusivamente al passo profilo per confinare la transizione d'ingresso. Nessuna modifica a API, altre schermate, funzioni, dipendenze o palette condivisa.
+- Schede: un solo gradiente quasi nero traslucido (.40–.56), eliminata la doppia superficie che portava l'opacità effettiva a ~.97; bordo cyan .22, niente linea neon inferiore, niente glow a riposo; focus .34 con alone .05.
+- Icone 36px anziché 50px con riempimento e bordi attenuati; genere con opzioni ravvicinate e selezione cyan .07 anziché gradiente blu opaco; select età scura .18 con bordo .10. Pannello età armonizzato near-black.
+- Overlay centrale/inferiore meno coprente per mantenere visibile la fotografia. Asset, ritaglio, cornice congelata e gestione tastiera INVARIATI. Titolo/testi/CTA INVARIATI.
+- Riferimenti recuperati in `memory/profile_visual/reference.png` (mockup) e `reference-secondary.png` (sfondo originale); copia pre-intervento del componente nella stessa cartella.
+- Verifiche: lint componente e wrapper PASS; backend 5/5 PASS; E2E onboarding con POST reale e persistenza confermata; interazioni/scroll verificati a 390×844, 320×568, 430×932. Report `test_reports/iteration_4.json`.
+- Follow-up della segnalazione overflow: wrapper limita il passo profilo; il primo ricontrollo includeva anche frame della Intro. Campionamento corretto sul solo profilo: **24 frame, massimo 390/390px**, nessun overflow. Fonte `memory/profile_visual/verification.log`.
+- Verifica finale a transizione conclusa, in italiano: nome/genere/età/Continua funzionanti; coordinate/dimensioni dello sfondo identiche dopo focus e selezioni e dopo riduzione viewport da 390×844 a 390×544. Questa è una simulazione browser, non una verifica della tastiera fisica iOS/Android.
+- Confronto diretto mockup/prima/dopo archiviato in `memory/profile_visual/comparison.png`: ridotti pannelli blu, opacità e bagliori; fotografia visibile attraverso le superfici. Nessuna dichiarazione pixel-perfect; resta all'utente la valutazione estetica finale.
+- P0 completato. P1: verifica su dispositivo fisico dell'utente. P2: nessuna nuova funzionalità richiesta.

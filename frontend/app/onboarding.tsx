@@ -126,16 +126,18 @@ export default function Onboarding() {
   // ------------------------------------------------------- STEP 1 profilo (facoltativo)
   if (step === 1) {
     return (
-      <Animated.View key="profile" entering={enterFrom(dir)} style={styles.container}>
-        <OnboardingProfile
-          value={profile}
-          onChange={setProfile}
-          onBack={() => goTo(0)}
-          onContinue={() => goTo(2)}
-          canContinue
-          saving={false}
-        />
-      </Animated.View>
+      <View style={styles.profileViewport} testID="onboarding-profile-viewport">
+        <Animated.View key="profile" entering={enterFrom(dir)} style={styles.container}>
+          <OnboardingProfile
+            value={profile}
+            onChange={setProfile}
+            onBack={() => goTo(0)}
+            onContinue={() => goTo(2)}
+            canContinue
+            saving={false}
+          />
+        </Animated.View>
+      </View>
     );
   }
 
@@ -242,6 +244,7 @@ export default function Onboarding() {
 
 const useStyles = makeStyles((colors) => ({
   container: { flex: 1, backgroundColor: ONB.bgTop },
+  profileViewport: { flex: 1, backgroundColor: ONB.bgTop, overflow: "hidden" },
   orb: {
     position: "absolute", top: -140, right: -110, width: 340, height: 340, borderRadius: 170,
     backgroundColor: ONB.orb, boxShadow: "0px 0px 150px 70px rgba(31,75,255,0.16)" as any,

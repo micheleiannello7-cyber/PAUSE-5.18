@@ -23,15 +23,14 @@ const ARTWORK = require("../../assets/images/onboarding-profile-bg.jpg");
 // Stesso gradiente del pulsante della presentazione (riferimento fisso del brand).
 const CTA_BORDER = ["#E08CFF", "#7FA0FF", "#7FEBFF"] as const;
 const CTA_FILL = ["#8A2BE8", "#5B3BF5", "#3556F2", "#2A8CF0", "#22C4F2"] as const;
-// Materiale fisso per entrambi i temi: un solo velo quasi nero traslucido.
-// Non sommare un fondo alle schede: renderebbe di nuovo il vetro opaco.
-const CARD_TOP = "rgba(8,12,20,0.48)";
-const CARD_MID = "rgba(4,9,16,0.40)";
-const CARD_BOTTOM = "rgba(3,7,13,0.56)";
-const BORDER = "rgba(40,210,255,0.22)";
-const ICON_FILL = "rgba(9,13,22,0.24)";
-const CHIP_FILL = "rgba(3,7,13,0.14)";
-const SELECT_FILL = "rgba(3,7,13,0.18)";
+// Colori campionati dal mockup (schede navy quasi opache, bordo blu, filo ciano).
+const CARD_TOP = "rgba(8,38,72,0.82)";
+const CARD_BOTTOM = "rgba(4,26,52,0.86)";
+const BORDER = "rgba(24,110,190,0.62)";
+const EDGE = "#2BB4FF";
+const ICON_FILL = "rgba(15,34,58,0.98)";
+const CHIP_FILL = "rgba(8,22,50,0.8)";
+const SELECT_FILL = "rgba(4,17,32,0.92)";
 const PLACEHOLDER = "#8FA6C9";
 const AGES = Array.from({ length: 108 }, (_, i) => 13 + i); // 13 … 120
 const AGE_ROW = 52;
@@ -73,7 +72,7 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
         {/* Veli: cielo leggermente scurito per il logo, pianeta/lago visibili dietro al titolo,
             fondo progressivamente scuro dove poggiano le schede e la CTA (come nel mockup). */}
         <LinearGradient
-          colors={[withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.3), withAlpha(ONB.bgTop, 0.24), withAlpha(ONB.bgTop, 0.36), withAlpha(ONB.bgTop, 0.5), withAlpha(ONB.bgTop, 0.72), withAlpha(ONB.bgTop, 0.8)]}
+          colors={[withAlpha(ONB.bgTop, 0.58), withAlpha(ONB.bgTop, 0.3), withAlpha(ONB.bgTop, 0.24), withAlpha(ONB.bgTop, 0.6), withAlpha(ONB.bgTop, 0.84), withAlpha(ONB.bgTop, 0.9), withAlpha(ONB.bgTop, 0.8)]}
           locations={[0, 0.12, 0.3, 0.44, 0.6, 0.82, 1]}
           style={StyleSheet.absoluteFill}
         />
@@ -109,14 +108,13 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 
           {/* Nome o nickname */}
           <GlassField icon="person-outline" glow={focused} testID="onboarding-profile-name-card">
-            <Text style={styles.label} testID="onboarding-profile-name-label">{t.onb_profile_name}</Text>
+            <Text style={styles.label}>{t.onb_profile_name}</Text>
             <TextInput
               value={value.name}
               onChangeText={(name) => onChange({ ...value, name: name.slice(0, 40) })}
               placeholder={t.onb_profile_name_ph}
               placeholderTextColor={PLACEHOLDER}
               style={styles.input}
-              hitSlop={11}
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="done"
@@ -130,12 +128,13 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 
           {/* Genere */}
           <GlassField icon="male-female-outline" testID="onboarding-profile-gender-card">
-            <Text style={styles.label} testID="onboarding-profile-gender-label">{t.onb_profile_gender}</Text>
+            <Text style={styles.label}>{t.onb_profile_gender}</Text>
             <View style={styles.chips}>
               {([["man", t.onb_profile_man], ["woman", t.onb_profile_woman], ["other", t.onb_profile_other]] as [Gender, string][]).map(([g, label]) => {
                 const on = value.gender === g;
                 return (
                   <Pressable key={g} onPress={() => setGender(g)} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`onboarding-profile-gender-${g}`} style={({ pressed }) => [styles.chip, on && styles.chipOn, pressed && styles.pressed]}>
+                    {on ? <LinearGradient colors={["#064B80", "#0B6FA0", "#0E88B6"]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} /> : null}
                     <Text style={[styles.chipText, on && styles.chipTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{label}</Text>
                   </Pressable>
                 );
@@ -145,7 +144,7 @@ export function OnboardingProfile({ value, onChange, onBack, onContinue, canCont
 
           {/* Età */}
           <GlassField icon="calendar-outline" testID="onboarding-profile-age-card">
-            <Text style={styles.label} testID="onboarding-profile-age-label">{t.onb_profile_age}</Text>
+            <Text style={styles.label}>{t.onb_profile_age}</Text>
             <Pressable onPress={() => setAgePickerOpen(true)} accessibilityRole="button" accessibilityLabel={t.onb_profile_age_ph} testID="onboarding-profile-age" style={({ pressed }) => [styles.select, pressed && styles.pressed]}>
               <Text style={[styles.selectText, value.age === null && styles.selectPlaceholder]} testID="onboarding-profile-age-value">
                 {value.age === null ? t.onb_profile_age_ph : `${value.age} ${t.onb_profile_age_years}`}
@@ -210,15 +209,17 @@ function GradientWord({ word, fontSize }: { word: string; fontSize: number }) {
   );
 }
 
-// Una sola superficie di vetro scuro: la fotografia resta visibile al suo interno.
-// Nessun filo neon sul bordo inferiore e nessun alone sulle schede a riposo.
+// Scheda del mockup: navy scuro quasi opaco, bordo blu sottile che si accende
+// in ciano sul fondo, cerchio icona a sinistra.
 function GlassField({ icon, glow, testID, children }: { icon: string; glow?: boolean; testID: string; children: React.ReactNode }) {
   return (
     <View style={[styles.card, glow && styles.cardGlow]} testID={testID}>
-      <LinearGradient colors={[CARD_TOP, CARD_MID, CARD_BOTTOM]} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <LinearGradient colors={[CARD_TOP, CARD_BOTTOM]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      {/* Filo luminoso ciano sul bordo inferiore, come nel mockup. */}
+      <LinearGradient pointerEvents="none" colors={[withAlpha(EDGE, 0), EDGE, withAlpha(EDGE, 0)]} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cardEdge} />
       <View style={styles.cardRow}>
         <View style={styles.iconWrap}>
-          <Ionicons name={icon as any} size={21} color={ONB.textSecondary} />
+          <Ionicons name={icon as any} size={24} color={ONB.text} />
         </View>
         <View style={styles.cardBody}>{children}</View>
       </View>
@@ -236,9 +237,9 @@ function AgePicker({ visible, value, onClose, onPick }: { visible: boolean; valu
       <View style={styles.sheetBackdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t.onb_profile_back} testID="onboarding-profile-age-backdrop" />
         <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]} testID="onboarding-profile-age-sheet">
-          <LinearGradient colors={["rgba(12,16,25,0.98)", "rgba(5,9,16,0.98)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+          <LinearGradient colors={[ONB.glassTop, ONB.glassBottom]} style={StyleSheet.absoluteFill} pointerEvents="none" />
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle} testID="onboarding-profile-age-sheet-title">{t.onb_profile_age_ph}</Text>
+          <Text style={styles.sheetTitle}>{t.onb_profile_age_ph}</Text>
           <FlatList
             ref={listRef}
             data={AGES}
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
   header: { position: "relative" },
   back: {
     position: "absolute", left: -6, top: 2, zIndex: 2, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center",
-    backgroundColor: ICON_FILL, borderWidth: 1, borderColor: withAlpha(ONB.textSecondary, 0.12),
+    backgroundColor: "rgba(12,26,52,0.72)", borderWidth: 1, borderColor: "rgba(120,170,230,0.32)",
   },
   pressed: { opacity: 0.8 },
   spacer: { flexGrow: 1.1, minHeight: 22 },
@@ -287,31 +288,34 @@ const styles = StyleSheet.create({
     color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 12, paddingHorizontal: 6,
     textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
   },
-  // Bordi discreti e vetro senza fondo duplicato né glow permanente.
+  // Geometria dal mockup: raggio ≈ 1/3 dell'altezza, distanza 12 tra le schede,
+  // bordo blu 1.5 px con leggero alone, fondo navy quasi opaco.
   card: {
-    borderRadius: 26, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginBottom: 14,
-    backgroundColor: "transparent",
+    borderRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginBottom: 12,
+    backgroundColor: CARD_BOTTOM,
+    boxShadow: `0px 4px 18px ${withAlpha(EDGE, 0.16)}, 0px 10px 28px ${withAlpha(ONB.bgTop, 0.6)}` as any,
   },
-  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.34), boxShadow: `0px 0px 16px ${withAlpha(ONB.cyan, 0.05)}` as any },
-  cardRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 18, paddingLeft: 16, paddingRight: 16 },
+  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.7), boxShadow: `0px 0px 22px ${withAlpha(ONB.cyan, 0.26)}` as any },
+  cardEdge: { position: "absolute", left: 26, right: 26, bottom: 0, height: 2, borderRadius: 1 },
+  cardRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16, paddingLeft: 12, paddingRight: 16 },
   iconWrap: {
-    width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center",
-    backgroundColor: ICON_FILL, borderWidth: 1, borderColor: withAlpha(ONB.textSecondary, 0.08),
+    width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center",
+    backgroundColor: ICON_FILL, borderWidth: 1, borderColor: "rgba(120,170,230,0.32)",
   },
   cardBody: { flex: 1, minWidth: 0, gap: 7 },
   label: { color: ONB.text, fontFamily: typography.bodyBold, fontSize: 14.5, lineHeight: 18 },
   input: { color: ONB.text, fontFamily: typography.body, fontSize: 14, lineHeight: 20, paddingVertical: 1, paddingHorizontal: 0, minHeight: 22, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : null) },
-  chips: { flexDirection: "row", gap: 4, marginTop: 2 },
+  chips: { flexDirection: "row", gap: 7, marginTop: 2 },
   chip: {
-    flex: 1, minHeight: 44, borderRadius: 12, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
-    backgroundColor: CHIP_FILL, borderWidth: 1, borderColor: withAlpha(ONB.textSecondary, 0.1),
+    flex: 1, minHeight: 42, borderRadius: radius.pill, overflow: "hidden", alignItems: "center", justifyContent: "center", paddingHorizontal: 6,
+    backgroundColor: CHIP_FILL, borderWidth: 1, borderColor: "rgba(110,165,235,0.4)",
   },
-  chipOn: { borderColor: withAlpha(ONB.cyan, 0.36), backgroundColor: withAlpha(ONB.cyan, 0.07), boxShadow: `0px 0px 12px ${withAlpha(ONB.cyan, 0.045)}` as any },
-  chipText: { color: ONB.textSecondary, fontFamily: typography.bodyMedium, fontSize: 14 },
+  chipOn: { borderColor: withAlpha(ONB.cyan, 0.9), boxShadow: `0px 0px 12px ${withAlpha(ONB.cyan, 0.32)}` as any },
+  chipText: { color: "#D5E0F3", fontFamily: typography.bodyMedium, fontSize: 14 },
   chipTextOn: { color: ONB.text, fontFamily: typography.bodyBold },
   select: {
-    minHeight: 44, borderRadius: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, marginTop: 2,
-    backgroundColor: SELECT_FILL, borderWidth: 1, borderColor: withAlpha(ONB.textSecondary, 0.1),
+    minHeight: 44, borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, marginTop: 2,
+    backgroundColor: SELECT_FILL, borderWidth: 1, borderColor: "rgba(110,165,235,0.36)",
   },
   selectText: { color: ONB.text, fontFamily: typography.bodyMedium, fontSize: 14 },
   selectPlaceholder: { color: "#C2CFE6", fontFamily: typography.body },
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 6, backgroundColor: "#22345F" },
   dotOn: { width: 10, backgroundColor: "#37D3FF", boxShadow: "0px 0px 10px #37D3FFAA" as any },
   sheetBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(ONB.bgTop, 0.7) },
-  sheet: { maxHeight: "60%", borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: BORDER, paddingTop: 10, paddingHorizontal: spacing.lg },
+  sheet: { maxHeight: "60%", borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: "hidden", borderWidth: 1, borderColor: ONB.glassBorderStrong, paddingTop: 10, paddingHorizontal: spacing.lg },
   sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: ONB.glassBorderStrong, marginBottom: 12 },
   sheetTitle: { color: ONB.text, fontFamily: typography.displayBold, fontSize: 18, marginBottom: 8, textAlign: "center" },
   sheetList: { flexGrow: 0 },

@@ -102,3 +102,56 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 # ⚠️ PAUSE: prima di modificare/testare leggere /app/memory/CONSTITUTION.md (Costituzione tecnica vincolante: minimum change, niente rigenerazione asset, niente AI a runtime, identità visiva dark-navy/cyan/glass). Rispondere in italiano.
+
+user_problem_statement: "Correggere SOLO il design visivo della schermata Dati personali: superfici glass quasi nere più trasparenti, bordi/glow attenuati, icone piccole e controlli integrati. Invariati testi/titolo/CTA/campi/funzioni/navigazione/salvataggio/immagine. Confrontare il mockup allegato."
+frontend:
+  - task: "Correzione materiale glass Dati personali e regressione delle interazioni"
+    implemented: true
+    working: true
+    file: "frontend/src/components/onboarding-profile.tsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Precedente risultato rifiutato: container troppo blu/opachi, glow e bordi eccessivi, box dentro box."
+      - working: "NA"
+        agent: "main"
+        comment: "Una superficie traslucida .40-.56, bordo .22, nessun glow a riposo né filo neon; icone 36px, selezione cyan .07, età .18; overlay più leggero. Cornice background fissa e funzioni invariate. Lint PASS. Screenshot mostra correzione, ma la routine screenshot ha avuto un timeout sull'attesa font prima dei test interattivi: eseguire test completi."
+      - working: true
+        agent: "testing"
+        comment: "Report iteration_4: interazioni, responsive e persistenza PASS. Segnalato overflow transitorio durante ingresso."
+      - working: true
+        agent: "main"
+        comment: "Aggiunto ritaglio solo al passo profilo. Ricontrollo con campionamento esclusivo profilo: 24 frame, massimo 390/390px, nessun overflow. Focus/selezione/modal e viewport ridotto non cambiano sfondo. Screenshot italiani a transizione conclusa e confronto mockup archiviati in memory/profile_visual. Nessun errore render. Tastiera nativa non testata."
+backend:
+  - task: "Regressione salvataggio profilo esistente a fine onboarding"
+    implemented: true
+    working: true
+    file: "frontend/app/onboarding.tsx (non modificato)"
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Nessuna modifica backend o persistenza: verificare E2E con utente anonimo creato solo dal browser di test, senza toccare utenti esistenti."
+      - working: true
+        agent: "testing"
+        comment: "Backend 5/5 PASS; POST /api/user/profile reale intercettato e GET /api/user/{uid} con display_name/gender/age persistiti. Nessuna regressione."
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+test_plan:
+  current_focus:
+    - "Screenshot in italiano 390×844 e 320×568/360×800: superfici, leggibilità, nessun overflow"
+    - "Nome, tre scelte genere, apertura/selezione/chiusura età, focus e sfondo fisso"
+    - "Indietro/presentazione, avanti/formati/argomenti, salvataggio profilo al termine"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+agent_communication:
+  - agent: "main"
+    message: "Riferimenti /app/memory/profile_visual/reference.png e reference-secondary.png. Prima versione in onboarding-profile.before.tsx. Screenshot corretto /root/.emergent/automation_output/20260925_131427/final_20260925_131427.jpeg. Nessun login/credenziali richiesti. Non modificare codice applicativo né chiamare generazione AI/TTS/pagamenti. Usare locale it-IT nel browser e URL esterno .env. Distinguere test browser da tastiera nativa non testabile."

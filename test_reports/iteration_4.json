@@ -1,0 +1,56 @@
+{
+  "summary": "Eseguito test backend+frontend su onboarding profilo (preview web Expo, sessione anonima isolata). Backend: 5/5 pytest pass su /api/user/profile (persistenza+validazioni). Frontend: screenshot comparativi IT acquisiti (390x844, 320x568, 430x932), interazioni nome/genere/età verificate, draft preservato su back/forward, submit onboarding completato fino a /discover con POST reale /api/user/profile catturato e persistenza backend confermata.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Onboarding profile (390x844)",
+        "issues": [
+          "Overflow orizzontale transitorio durante l'animazione di ingresso (0-500ms: scrollWidth 414>390), poi rientra a 390 senza overflow stabile."
+        ]
+      }
+    ],
+    "react_native_issues": [
+      {
+        "component": "Expo Web runtime",
+        "issue": "Warning non bloccanti in console: textShadow* deprecated, props.pointerEvents deprecated, Reanimated easing fallback su web. Nessun red screen."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter4_onboarding_profile_api.py",
+    "/app/test_reports/pytest/pytest_results_iter4_profile.xml",
+    "/app/test_reports/ui_iter4/profile_390x844_it.jpeg",
+    "/app/test_reports/ui_iter4/profile_320x568_it.jpeg",
+    "/app/test_reports/ui_iter4/profile_430x932_it.jpeg",
+    "/app/test_reports/ui_iter4/load_check_390x844.jpeg",
+    "/app/test_reports/ui_iter4/console_20260925_131931.log"
+  ],
+  "action_items": [
+    "Valutare se il micro-overflow iniziale (solo durante transizione) è accettabile o va eliminato per match pixel-perfect del mockup.",
+    "Se si vuole test automation più robusta sullo stato selezionato dei chip genere/età, esporre attributi di stato testabili (es. data-selected) oltre allo stile visivo."
+  ],
+  "critical_code_review_comments": [
+    "Confronto con onboarding-profile.before.tsx: modifiche concentrate su resa visuale materiali (alpha/border/glow/icon size/chips/select) + testID/hitSlop; non rilevate modifiche a logica di navigazione/salvataggio/ordine campi/asset.",
+    "onboarding.tsx invariato nei flussi: profilo resta opzionale; submit finale continua a inviare setInterests + setContentModes + setProfile condizionale.",
+    "Persistenza backend coerente: POST catturato /api/user/profile con {display_name:'Marco', gender:'other', age:23} e GET /api/user/{uid} restituisce stessi valori." 
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter4_onboarding_profile_api.py",
+    "/app/test_reports/iteration_4.json"
+  ],
+  "success_rate": {
+    "backend": "100% (5/5)",
+    "frontend": "95% (flussi richiesti validati; solo overflow transitorio in ingresso)"
+  },
+  "seed_data_creation": "Creati solo utenti anonimi temporanei (uuid in localStorage pause.user_id) durante E2E; nessuna modifica a utenti esistenti.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Per verificare dismiss età via backdrop in web preview, cliccare area alta esterna al bottom sheet (tap top area): mantiene età selezionata. Clic generico forzato sul backdrop può intercettare righe del foglio in automazione.",
+  "rca_of_issue": "Il cambio età 25->23 osservato in un run era dovuto a click forzato sul backdrop nel centro viewport durante modal aperta: il puntatore veniva intercettato da una riga del foglio (age-23), non da logica di persistenza. Con tap reale in area esterna superiore il dismiss funziona e preserva il valore."
+}
