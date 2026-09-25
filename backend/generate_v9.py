@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT_DIR))
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage  # noqa: E402
 from generate_fill import CHAPTER_ICONS, SYSTEM, parse_json, story_prompt, lesson_prompt  # noqa: E402
-from generate_v8 import slugify, validate  # noqa: E402
+from generate_v8 import slugify  # noqa: E402
 from server import _estimated_audio_minutes  # noqa: E402
 from story_builder import CAT_META  # noqa: E402
 from seed_data import CATEGORY_NAMES_EN  # noqa: E402
@@ -38,7 +38,8 @@ OUT = ROOT_DIR / "v9_content.json"
 MAX_MINUTES = 5
 # 5 min = 300 s a 12.5 caratteri/s meno le pause (~10.5 s) ≈ 3600 caratteri; margine di sicurezza.
 MAX_CHARS = 3400
-WORDS = "55-75 words"
+WORDS = "60-75 words"
+MIN_WORDS = 50  # validate() di v8 esige 60 parole: qui i capitoli sono più brevi per restare ≤5 min.
 LENGTH_RULE = (
     "\n\nLENGTH IS MANDATORY: the whole narration of each language (title + hook + 6 chapter titles + "
     f"6 bodies + summary) must stay under {MAX_CHARS} characters, so each chapter body is {WORDS}. "
@@ -80,6 +81,17 @@ def save_out(data: dict):
     tmp.replace(OUT)
 
 
+def validate_v9(d: dict, kind: str):
+    it, en = d["it"], d["en"]
+    assert len(it["chapters"]) == 6 and len(en["chapters"]) == 6, "need 6 chapters"
+    for lang in (it, en):
+        assert lang["title"] and lang["hook"] and lang["summary"], "missing fields"
+        for ch in lang["chapters"]:
+            assert ch["title"] and len(ch["body"].split()) >= MIN_WORDS, "chapter too short"
+        if kind == "lesson":
+            assert lang.get("objective"), "missing objective"
+
+
 async def ask(session_id: str, prompt: str, kind: str, retries: int = 3) -> dict:
     last_err = None
     for attempt in range(retries):
@@ -87,12 +99,12 @@ async def ask(session_id: str, prompt: str, kind: str, retries: int = 3) -> dict
             chat = LlmChat(api_key=os.environ["EMERGENT_LLM_KEY"], session_id=f"{session_id}-{attempt}", system_message=SYSTEM)
             chat.with_model(*MODEL)
             d = parse_json(await chat.send_message(UserMessage(text=prompt)))
-            validate(d, kind)
+            validate_v9(d, kind)
             err = too_long(d)
             if err is None:
                 return d
             last_err = f"too long ({err})"
-            prompt += f"\n\nYour previous answer was too long ({err}). Cut every chapter body to about 55-65 words."
+            prompt += f"\n\nYour previous answer was too long ({err}). Cut every chapter body to about 60-65 words."
         except Exception as e:  # noqa: BLE001
             last_err = e
             msg = str(e).lower()

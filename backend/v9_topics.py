@@ -28,7 +28,7 @@ TOPICS = {
     },
     "economia": {
         "story": [
-            ("Perché i biglietti aerei cambiano prezzo ogni giorno?", "Why do plane ticket prices change every day?"),
+            ("Che cos'è una recessione (e perché arriva a ondate)?", "What is a recession (and why does it come in waves)?"),
             ("Perché esistono i saldi (e chi ci guadagna davvero)?", "Why do sales exist (and who really profits)?"),
             ("Perché le banche non tengono tutti i tuoi soldi in cassaforte?", "Why don't banks keep all your money in the vault?"),
             ("Come fa un'app gratuita a guadagnare miliardi?", "How does a free app make billions?"),
@@ -39,7 +39,7 @@ TOPICS = {
         "lesson": [
             ("Leggere un estratto conto in 6 passi: cosa controllare ogni mese", "Reading a bank statement in 6 steps: what to check every month"),
             ("Capire un'assicurazione: premio, franchigia e massimale in 6 passi", "Understanding an insurance policy: premium, deductible and cap in 6 steps"),
-            ("TAN, TAEG e rate: leggere un prestito prima di firmare", "Interest rate, APR and instalments: reading a loan before you sign"),
+            ("Leggere una bolletta: 6 voci per capire cosa paghi davvero", "Reading a utility bill: 6 line items to understand what you really pay for"),
             ("Come funziona la pensione: 6 passi per capire i contributi", "How pensions work: 6 steps to understand contributions"),
             ("Negoziare uno stipendio o un prezzo: il metodo in 6 passi", "Negotiating a salary or a price: the 6-step method"),
             ("Riconoscere una truffa finanziaria: 6 segnali che si ripetono", "Spotting a financial scam: 6 warning signs that repeat"),
@@ -57,7 +57,7 @@ TOPICS = {
         "lesson": [
             ("Disegnare una figura umana proporzionata in 6 passi", "Drawing a well-proportioned human figure in 6 steps"),
             ("Riconoscere le tecniche: affresco, olio, tempera e acquerello in 6 passi", "Recognising techniques: fresco, oil, tempera and watercolour in 6 steps"),
-            ("Fotografare con il telefono: 6 regole di luce che cambiano tutto", "Phone photography: 6 rules of light that change everything"),
+            ("Come nasce un film d'animazione: 6 passi dallo storyboard allo schermo", "How an animated film is made: 6 steps from storyboard to screen"),
             ("Arredare una stanza: 6 principi di design che usano gli architetti", "Furnishing a room: 6 design principles architects use"),
             ("Capire il jazz in 6 passi: cosa ascoltare quando sembra caos", "Understanding jazz in 6 steps: what to listen for when it sounds like chaos"),
             ("Come si legge un fumetto: 6 scelte di regia tra una vignetta e l'altra", "How to read a comic: 6 storytelling choices between panels"),
@@ -77,8 +77,8 @@ TOPICS = {
             ("Riconoscere le coste: 6 forme e cosa raccontano", "Recognising coastlines: 6 shapes and what they reveal"),
             ("Prepararsi all'alta quota: 6 passi contro il mal di montagna", "Preparing for high altitude: 6 steps against mountain sickness"),
             ("Venti e correnti: perché le rotte di navi e aerei non sono dritte", "Winds and currents: why ship and plane routes aren't straight lines"),
-            ("I climi del mondo in 6 fasce: dall'equatore ai poli", "The world's climates in 6 belts: from the equator to the poles"),
-            ("Scegliere quando partire: 6 passi per leggere stagioni e clima di una meta", "Choosing when to travel: 6 steps to read a destination's seasons and climate"),
+            ("Perché le persone migrano: 6 fattori dietro ogni grande spostamento", "Why people migrate: 6 factors behind every great movement"),
+            ("Orientarsi in una metropoli sconosciuta: 6 trucchi per leggere la mappa dei trasporti", "Finding your way in an unfamiliar metropolis: 6 tricks to read a transit map"),
             ("Leggere un paesaggio a rischio: 6 segni di frane e alluvioni", "Reading a landscape for risk: 6 signs of landslides and floods"),
         ],
     },
@@ -102,7 +102,7 @@ TOPICS = {
             ("Perché la grandine cade d'estate e non d'inverno?", "Why does hail fall in summer, not winter?"),
             ("Perché le onde arrivano sempre parallele alla spiaggia?", "Why do waves always arrive parallel to the beach?"),
             ("Perché gli alberi non crescono oltre una certa altezza?", "Why can't trees grow beyond a certain height?"),
-            ("Perché il ghiaccio dei ghiacciai è blu?", "Why is glacier ice blue?"),
+            ("Perché in riva al mare il vento si alza sempre di pomeriggio?", "Why does the wind always pick up at the seaside in the afternoon?"),
         ],
         "lesson": [
             ("Cosa fare durante un temporale: 6 regole che salvano la vita", "What to do in a thunderstorm: 6 rules that save lives"),
@@ -132,7 +132,7 @@ TOPICS = {
     },
     "storia": {
         "story": [
-            ("Nel Medioevo nessuno credeva che la Terra fosse piatta", "Nobody in the Middle Ages believed the Earth was flat"),
+            ("I Romani conoscevano il vapore: perché non fecero la rivoluzione industriale?", "The Romans knew about steam power: why didn't they start the Industrial Revolution?"),
             ("Il pomodoro è arrivato in Italia solo nel Cinquecento: la storia della cucina 'italiana'", "Tomatoes only reached Italy in the 1500s: the history of 'Italian' food"),
         ],
         "lesson": [

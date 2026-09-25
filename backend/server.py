@@ -362,7 +362,9 @@ async def ensure_seed():
     threshold = now - timedelta(days=EARLY_ACCESS_DAYS)
     all_ids = [s["id"] for s in ALL_STORIES]
     if all_ids:
-        older_ids = all_ids[:-10]
+        # I contenuti v9 (produce_v9.py) hanno la data reale di pubblicazione:
+        # non vanno retrodatati, altrimenti perdono badge "Nuova" ed early access.
+        older_ids = [i for i in all_ids[:-10] if not i.startswith("v9-")]
         fresh_ids = all_ids[-10:]
         old_dt = now - timedelta(days=EARLY_ACCESS_DAYS + 23)
         if older_ids:
