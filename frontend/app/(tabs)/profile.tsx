@@ -302,6 +302,8 @@ function ModeSwitchRow({
       </View>
       <Switch
         value={value}
+        aria-checked={value}
+        accessibilityLabel={label}
         onValueChange={onToggle}
         trackColor={{ true: colors.cyan, false: colors.glassBorderStrong }}
         thumbColor={value ? colors.surface : colors.onSurface}

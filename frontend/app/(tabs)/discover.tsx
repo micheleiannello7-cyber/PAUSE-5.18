@@ -15,6 +15,7 @@ import { GradientButton } from "@/src/components/gradient-button";
 import { HomeCategoryTile } from "@/src/components/home-controls";
 import { HomeStoryDeck } from "@/src/components/home-story-deck";
 import { HomeReadingProgress } from "@/src/components/home-reading-progress";
+import { HomeBackdrop } from "@/src/components/home-backdrop";
 import { ResumeCard } from "@/src/components/resume-card";
 import { MilestoneCelebration } from "@/src/components/milestone-celebration";
 import { useReadingMilestone } from "@/src/milestones";
@@ -63,6 +64,7 @@ export default function Discover() {
   const [focusCat, setFocusCat] = useState<string | null>(null);
   const deckInterests = useMemo(() => focusCat ? [focusCat] : interests, [focusCat, interests]);
   const interestsKey = deckInterests.join(",");
+  const modesKey = [...(userState?.content_modes ?? ["stories", "lessons"])].sort().join(",");
   const ready = !!userId && !!userState;
   const { data: categories } = useQuery({ queryKey: ["categories"], queryFn: api.categories });
 
@@ -123,7 +125,7 @@ export default function Discover() {
 
   useEffect(() => {
     if (!ready) return;
-    const currentKey = `${userId}|${interestsKey}|${lang}`;
+    const currentKey = `${userId}|${interestsKey}|${modesKey}|${lang}`;
     if (audienceKey.current !== currentKey) {
       audienceKey.current = currentKey;
       resetDeck();
@@ -133,7 +135,7 @@ export default function Discover() {
     // Si aggiunge solo in coda (mai accanto al dito): il prossimo lotto parte
     // quando mancano poche card alla fine, così la card a destra c'è sempre.
     if (deck.length === 0 || cursor >= deck.length - PREFETCH_AHEAD) void loadBatch(deck.map((s) => s.id));
-  }, [ready, userId, interestsKey, lang, exhausted, loading, error, deck, cursor, loadBatch, resetDeck]);
+  }, [ready, userId, interestsKey, modesKey, lang, exhausted, loading, error, deck, cursor, loadBatch, resetDeck]);
 
   const tileCats = useMemo(() => {
     const all = categories ?? [];
@@ -157,6 +159,7 @@ export default function Discover() {
 
   return (
     <View testID="home-screen" style={[styles.container, { paddingTop: insets.top }]}>
+      <HomeBackdrop />
       <View style={[styles.header, { width }]} testID="home-header">
         <PauseLogo prominent />
         {firstName ? (

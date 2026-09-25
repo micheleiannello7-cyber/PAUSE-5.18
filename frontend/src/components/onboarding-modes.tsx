@@ -12,6 +12,13 @@ import { ONB } from "@/src/components/onboarding-palette";
 import { useI18n } from "@/src/i18n";
 
 const ORDER: StoryKind[] = ["stories", "lessons"];
+// Negli argomenti almeno un formato resta attivo, in entrambe le schermate.
+export function toggleContentMode(prev: Set<StoryKind>, mode: StoryKind, requireOne = true): Set<StoryKind> {
+  const next = new Set(prev);
+  if (next.has(mode)) next.delete(mode);
+  else next.add(mode);
+  return requireOne && next.size === 0 ? new Set(prev) : next;
+}
 const ENTER = FadeInDown.duration(360).easing(Easing.out(Easing.cubic));
 const EXIT = FadeOutUp.duration(200);
 const LAYOUT = LinearTransition.duration(320).easing(Easing.inOut(Easing.cubic));
@@ -41,6 +48,7 @@ export function ModeCards({ modes, onToggle }: { modes: Set<StoryKind>; onToggle
               onPress={() => onToggle(k)}
               testID={`onboarding-mode-${k}`}
               accessibilityRole="switch"
+              aria-checked={on}
               accessibilityState={{ checked: on }}
               style={({ pressed }) => [
                 styles.card,
@@ -87,28 +95,32 @@ export function ModeCards({ modes, onToggle }: { modes: Set<StoryKind>; onToggle
   );
 }
 
-export function ModeChips({ modes, onToggle }: { modes: Set<StoryKind>; onToggle: (k: StoryKind) => void }) {
+export function ModeChips({ modes, onToggle, disabled = false, idPrefix = "onboarding" }: {
+  modes: Set<StoryKind>; onToggle: (k: StoryKind) => void; disabled?: boolean; idPrefix?: string;
+}) {
   const styles = useStyles();
   const { label } = useModeCopy();
   return (
-    <View style={styles.chipRow} testID="onboarding-mode-chips">
+    <View style={styles.chipRow} testID={`${idPrefix}-mode-chips`}>
       {ORDER.map((k) => {
         const on = modes.has(k);
         return (
           <Pressable
             key={k}
             onPress={() => onToggle(k)}
-            testID={`onboarding-chip-${k}`}
+            testID={`${idPrefix}-chip-${k}`}
+            disabled={disabled}
             accessibilityRole="switch"
-            accessibilityState={{ checked: on }}
+            aria-checked={on}
+            accessibilityState={{ checked: on, disabled }}
             style={({ pressed }) => [
               styles.chip,
               on && styles.chipOn,
               pressed && styles.pressed,
             ]}
           >
-            <KindIcon kind={k} size={22} lit={on} glow={false} />
-            <Text style={[styles.chipLabel, on && { color: ONB.text }]}>{label(k)}</Text>
+            <KindIcon kind={k} size={22} lit={on} glow={false} testID={`${idPrefix}-chip-${k}-icon`} />
+            <Text testID={`${idPrefix}-chip-${k}-label`} style={[styles.chipLabel, on && { color: ONB.text }]}>{label(k)}</Text>
             {on ? <Ionicons name="checkmark" size={14} color={ONB.cyan} /> : null}
           </Pressable>
         );
@@ -147,13 +159,13 @@ const useStyles = makeStyles(() => ({
 
   chipRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.lg },
   chip: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 44,
-    paddingHorizontal: 12, borderRadius: radius.pill,
+    flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 44,
+    paddingHorizontal: 8, paddingVertical: 6, borderRadius: radius.pill,
     backgroundColor: "rgba(12,26,58,0.62)", borderWidth: 1.5, borderColor: ONB.glassBorder,
   },
   chipOn: {
     borderColor: withAlpha(ONB.cyan, 0.7), backgroundColor: "rgba(16,38,80,0.72)",
     boxShadow: `0px 0px 18px ${withAlpha(ONB.cyan, 0.2)}` as any,
   },
-  chipLabel: { color: ONB.textSecondary, fontFamily: typography.bodyBold, fontSize: 13 },
+  chipLabel: { flexShrink: 1, color: ONB.textSecondary, fontFamily: typography.bodyBold, fontSize: 13, textAlign: "center" },
 }));

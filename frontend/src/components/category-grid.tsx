@@ -29,8 +29,8 @@ export function toggleInterest(prev: Set<string>, id: string): Set<string> {
 // Selecting a tile tints its border and shows a check. `compact` is accepted for API
 // compatibility; the layout is the same everywhere.
 export function CategoryGrid({
-  categories, selected, onToggle, modes, staggerIn = false, glass = false,
-}: { categories: Category[]; selected: Set<string>; onToggle: (id: string) => void; compact?: boolean; modes?: ("stories" | "lessons")[]; staggerIn?: boolean; /** Stile "vetro" dark navy dell'onboarding (icone ritagliate, tessere con gradiente). */ glass?: boolean }) {
+  categories, selected, onToggle, modes, staggerIn = false, glass = false, disabled = false,
+}: { categories: Category[]; selected: Set<string>; onToggle: (id: string) => void; compact?: boolean; modes?: ("stories" | "lessons")[]; staggerIn?: boolean; disabled?: boolean; /** Stile "vetro" dark navy dell'onboarding (icone ritagliate, tessere con gradiente). */ glass?: boolean }) {
   const allActive = selected.has(ALL_ID);
   const { t } = useI18n();
   const styles = useStyles();
@@ -60,8 +60,9 @@ export function CategoryGrid({
       <Pressable
         testID="chip-all"
         onPress={() => onToggle(ALL_ID)}
+        disabled={disabled}
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: allActive }}
+        accessibilityState={{ checked: allActive, disabled }}
         accessibilityLabel={t.any_topic}
         style={({ pressed }) => [
           styles.allCard,
@@ -89,8 +90,9 @@ export function CategoryGrid({
             <Pressable
               testID={`chip-${c.id}`}
               onPress={() => onToggle(c.id)}
+              disabled={disabled}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: active }}
+              accessibilityState={{ checked: active, disabled }}
               accessibilityLabel={`${c.name}, ${countFor(c)}`}
               style={({ pressed }) => [
                 styles.tile,

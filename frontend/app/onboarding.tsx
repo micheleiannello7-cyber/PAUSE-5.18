@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, Pressable, StyleSheet } from "react-native";
-import Animated, { FadeInRight, FadeInLeft, FadeIn, FadeOut, LinearTransition, Easing } from "react-native-reanimated";
+import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
+import Animated, { FadeInRight, FadeInLeft, FadeOut, LinearTransition, Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -11,15 +11,15 @@ import * as Haptics from "expo-haptics";
 import { api, ProfileInput } from "@/src/api";
 import { makeStyles, useTheme, spacing, typography, radius, withAlpha } from "@/src/theme";
 import { getOrCreateUserId, setOnboarded } from "@/src/session";
-import { CategoryGrid, toggleInterest } from "@/src/components/category-grid";
+import { toggleInterest } from "@/src/components/category-grid";
 import { PagerDots } from "@/src/components/pager";
 import { OnboardingIntro } from "@/src/components/onboarding-intro";
 import { OnboardingProfile, ProfileDraft, MIN_NAME } from "@/src/components/onboarding-profile";
-import { ModeCards, ModeChips } from "@/src/components/onboarding-modes";
+import { ModeCards, toggleContentMode } from "@/src/components/onboarding-modes";
+import { TopicPicker, TopicsBackdrop } from "@/src/components/topic-picker";
 import { OnboardingSwipe, SwipeDir } from "@/src/components/onboarding-swipe";
 import { OnboardingToast, OnboardingNotice } from "@/src/components/onboarding-toast";
 import { ONB } from "@/src/components/onboarding-palette";
-import { LinearGradient } from "expo-linear-gradient";
 import { useI18n } from "@/src/i18n";
 
 type Mode = "stories" | "lessons";
@@ -53,14 +53,7 @@ export default function Onboarding() {
 
   const toggleMode = (m: Mode) => {
     Haptics.selectionAsync().catch(() => {});
-    setModes((prev) => {
-      const next = new Set(prev);
-      if (next.has(m)) next.delete(m);
-      else next.add(m);
-      // in fase argomenti non si resta mai senza formato
-      if (topics && next.size === 0) next.add(m);
-      return next;
-    });
+    setModes((prev) => toggleContentMode(prev, m, topics));
   };
 
   const goTo = (index: number) => {
@@ -110,8 +103,6 @@ export default function Onboarding() {
     }
   };
 
-  const formats = modes.size === 2 ? t.onb_formats_both : modes.has("lessons") ? t.onb_formats_lessons : t.onb_formats_stories;
-
   // Only the presentation changes; topic selection and persistence stay intact.
   if (step === 0) {
     return (
@@ -144,10 +135,7 @@ export default function Onboarding() {
   // ------------------------------------------- STEP 1 formato · STEP 2 argomenti
   return (
     <View style={[styles.container, { paddingTop: insets.top }]} testID="onboarding-topics">
-      {/* Fondo dark navy cinematografico con bagliori blu/viola (stile mockup). */}
-      <LinearGradient colors={[ONB.bgTop, ONB.bgMid, ONB.bgBottom]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} pointerEvents="none" />
-      <View style={styles.orb} pointerEvents="none" />
-      <View style={styles.orbViolet} pointerEvents="none" />
+      <TopicsBackdrop />
       <OnboardingSwipe key={step} canGo={canSwipe} onGo={onSwipe} onBlocked={onBlockedSwipe} testID="onboarding-swipe">
       {isLoading ? (
         <ActivityIndicator color={colors.brand} style={{ marginTop: spacing.xxxl }} testID="onboarding-loading" />
@@ -174,27 +162,16 @@ export default function Onboarding() {
       ) : (
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[styles.content, !topics && styles.contentCentered]}
+          contentContainerStyle={!topics ? [styles.content, styles.contentCentered] : undefined}
           showsVerticalScrollIndicator={false}
           bounces={false}
+          testID="onboarding-selection-scroll"
         >
           {topics ? (
             <Animated.View key="topics" entering={enterFrom(dir)} layout={LAYOUT}>
-              <ModeChips modes={modes} onToggle={toggleMode} />
-              <Text style={styles.stepTitle} testID="onboarding-topics-title">{t.onb_title}</Text>
-              <Animated.View entering={FadeIn.delay(120).duration(360)} style={styles.hintCard} testID="onboarding-topics-hint">
-                <Ionicons name="sparkles-outline" size={16} color={ONB.cyan} style={styles.hintIcon} />
-                <Text style={styles.hintText}>{t.onb_topics_hint.replace("{formats}", formats)}</Text>
-              </Animated.View>
-              <CategoryGrid
-                compact
-                staggerIn
-                glass
-                categories={categories}
-                selected={selected}
-                modes={Array.from(modes)}
-                onToggle={(id) => setSelected((prev) => toggleInterest(prev, id))}
-              />
+              <TopicPicker testID="onboarding-topics" categories={categories} selected={selected} modes={modes}
+                onToggleMode={toggleMode} onToggleCategory={(id) => setSelected((prev) => toggleInterest(prev, id))}
+                disabled={saving} staggerIn />
             </Animated.View>
           ) : (
             <Animated.View key="modes" entering={enterFrom(dir)} exiting={FadeOut.duration(160)} layout={LAYOUT}>
@@ -245,14 +222,6 @@ export default function Onboarding() {
 const useStyles = makeStyles((colors) => ({
   container: { flex: 1, backgroundColor: ONB.bgTop },
   profileViewport: { flex: 1, backgroundColor: ONB.bgTop, overflow: "hidden" },
-  orb: {
-    position: "absolute", top: -140, right: -110, width: 340, height: 340, borderRadius: 170,
-    backgroundColor: ONB.orb, boxShadow: "0px 0px 150px 70px rgba(31,75,255,0.16)" as any,
-  },
-  orbViolet: {
-    position: "absolute", bottom: 120, left: -160, width: 300, height: 300, borderRadius: 150,
-    backgroundColor: "rgba(120,60,255,0.06)", boxShadow: "0px 0px 140px 60px rgba(120,60,255,0.08)" as any,
-  },
   scroll: { flex: 1 },
   content: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   contentCentered: { flexGrow: 1, justifyContent: "center", paddingBottom: spacing.xxxl },
@@ -260,14 +229,6 @@ const useStyles = makeStyles((colors) => ({
     color: ONB.text, fontFamily: typography.displayBold, fontSize: 28, lineHeight: 34, marginBottom: spacing.lg,
     textShadowColor: "rgba(55,211,255,0.25)", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 18,
   },
-  hintCard: {
-    flexDirection: "row", alignItems: "flex-start", gap: spacing.sm,
-    padding: spacing.md, marginBottom: spacing.lg, borderRadius: radius.lg,
-    backgroundColor: "rgba(12,26,58,0.65)", borderWidth: 1, borderColor: "rgba(55,211,255,0.32)",
-    boxShadow: "0px 0px 24px rgba(55,211,255,0.08)" as any,
-  },
-  hintIcon: { marginTop: 2 },
-  hintText: { flex: 1, color: ONB.textSecondary, fontFamily: typography.body, fontSize: 13, lineHeight: 19 },
   dots: { alignSelf: "center", marginBottom: spacing.md },
   ctaBtn: {
     minHeight: 56, borderRadius: radius.pill, overflow: "hidden",

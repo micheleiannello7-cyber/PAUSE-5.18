@@ -194,6 +194,7 @@ const it = {
   // errors
   load_error: "Non riusciamo a caricare i contenuti.",
   load_error_sub: "Controlla la connessione e riprova.",
+  preferences_save_error: "Modifica non salvata. Le scelte precedenti restano attive: controlla la connessione e riprova.",
   retry: "Riprova",
   // resume reading
   resume_eyebrow: "RIPRENDI DA DOVE ERI RIMASTO",
@@ -446,6 +447,7 @@ const en: typeof it = {
   pl_stats_eyebrow: "YOUR SESSION", pl_time_read: "reading time",
   load_error: "We can't load the content.",
   load_error_sub: "Check your connection and try again.",
+  preferences_save_error: "Change not saved. Your previous choices are still active: check your connection and try again.",
   retry: "Retry",
   resume_eyebrow: "PICK UP WHERE YOU LEFT OFF",
   resume_hint: "Continue where you left off",

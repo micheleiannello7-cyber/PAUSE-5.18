@@ -1,0 +1,78 @@
+{
+  "summary": "Targeted backend+frontend verification completed on public preview URL for StoryInfoGrid pill, Home backdrop integration, shared Explore/Onboarding picker, autosave persistence, network-failure recovery, and onboarding E2E (320/430). Core requested flows passed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Mode state observability in web preview",
+        "issue": "Explore mode chips and Profile switches did not expose reliable web checked-state attributes (aria-checked returned null), reducing deterministic automation assertions for selected state.",
+        "affected_testIDs": [
+          "explore-chip-stories",
+          "explore-chip-lessons",
+          "mode-switch-stories",
+          "mode-switch-lessons"
+        ]
+      }
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "Expo web runtime",
+        "issue": "Non-blocking existing warnings in logs: Reanimated web easing fallback, textShadow* deprecation, props.pointerEvents deprecation."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter6_topic_preferences_api.py",
+    "/app/test_reports/pytest/pytest_results_iter6_topic_prefs.xml",
+    "/app/test_reports/ui_iter6/home_dark_it.jpeg",
+    "/app/test_reports/ui_iter6/home_light_it.jpeg",
+    "/app/test_reports/ui_iter6/explore_initial_it.jpeg",
+    "/app/test_reports/ui_iter6/explore_after_reload_it.jpeg",
+    "/app/test_reports/ui_iter6/explore_it_final.jpeg",
+    "/app/test_reports/ui_iter6/explore_save_retry_state.jpeg",
+    "/app/test_reports/ui_iter6/explore_rapid_taps.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_375_it.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_it_320x640.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_it_390x844.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_it_430x932.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_en_320x640.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_en_390x844.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_bigbang_en_430x932.jpeg",
+    "/app/test_reports/ui_iter6/deep_dive_corpo_umano_320_it_langset.jpeg",
+    "/app/test_reports/ui_iter6/onboarding_topics_320x640_it.jpeg",
+    "/app/test_reports/ui_iter6/onboarding_topics_430x932_it.jpeg",
+    "/root/.emergent/automation_output/20260925_150946/console_20260925_150946.log",
+    "/root/.emergent/automation_output/20260925_151041/console_20260925_151041.log",
+    "/root/.emergent/automation_output/20260925_151123/console_20260925_151123.log",
+    "/root/.emergent/automation_output/20260925_151209/console_20260925_151209.log",
+    "/root/.emergent/automation_output/20260925_151412/console_20260925_151412.log"
+  ],
+  "action_items": [
+    "Optional but recommended: expose deterministic selected-state attributes for mode chips/switches in web preview to improve regression reliability.",
+    "Keep monitoring the known Expo web warnings; no blocking impact found in this scope."
+  ],
+  "critical_code_review_comments": [
+    "story-info-grid.tsx implements the single rounded 56pt pill with 2 separators and preserved existing icon components (KindIcon/CategoryArtMark/clock), matching requested architecture.",
+    "discover.tsx correctly mounts HomeBackdrop with pointerEvents='none', and swipe/scroll/open interactions remained functional under test.",
+    "explore.tsx + use-topic-preferences.ts enforce serialized writes (writing ref + disabled while pending); rapid-tap test produced a single POST, avoiding stale overlapping saves.",
+    "onboarding.tsx and explore.tsx both consume shared TopicPicker/TopicsBackdrop component path, and behavior/copy remained synchronized in practice."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter6_topic_preferences_api.py",
+    "/app/test_reports/iteration_6.json"
+  ],
+  "success_rate": {
+    "backend": "100% (5/5)",
+    "frontend": "96%"
+  },
+  "seed_data_creation": "None. Used anonymous browser users only; no credential changes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "No blocking regressions found in requested scope. Forced save failure and retry behaved correctly (error shown then cleared). Language-switch transient EN category labels were not reproducible as a persistent bug: EN after lang-en and IT after lang-it both reflected correctly.",
+  "rca_of_issue": "The only concrete gap found is state observability/testability on web: selected state for chips/switches is not consistently exposed via aria-checked, so automation cannot always assert selected mode through accessibility attributes even when behavior works."
+}

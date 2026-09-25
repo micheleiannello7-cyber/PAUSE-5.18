@@ -103,8 +103,39 @@
 #====================================================================================================
 # ⚠️ PAUSE: prima di modificare/testare leggere /app/memory/CONSTITUTION.md (Costituzione tecnica vincolante: minimum change, niente rigenerazione asset, niente AI a runtime, identità visiva dark-navy/cyan/glass). Rispondere in italiano.
 
-user_problem_statement: "Correggere SOLO il design visivo della schermata Dati personali: superfici glass quasi nere più trasparenti, bordi/glow attenuati, icone piccole e controlli integrati. Invariati testi/titolo/CTA/campi/funzioni/navigazione/salvataggio/immagine. Confrontare il mockup allegato."
+user_problem_statement: "Badge introduzione come riferimento: pillola unica arrotondata con 3 sezioni e separatori sottili, leggermente più grande del riferimento; mantenere icone 3D attuali. Home: stesso sfondo del passo nome, attenuato. Categorie raggiungibili dalla Home: riutilizzare realmente la schermata argomenti dell'onboarding, inclusi Curiosità/Mini lezioni, così le modifiche UI si applicano a entrambe."
 frontend:
+  - task: "Pillola introduzione con tre badge e icone 3D originali"
+    implemented: true
+    working: true
+    file: "frontend/src/components/story-info-grid.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Un solo contenitore da 56pt, bordo pervinca discreto, due divisori verticali sfumati, icone affiancate ai valori. Stessi KindIcon/CategoryArtMark/clock asset. Screenshot reale Big Bang 390x844 PASS (cover carica, nessun overflow). Verificare anche long labels, 320/430px, IT/EN e Leggi."
+      - working: true
+        agent: "testing"
+        comment: "Iteration_6: pillola e icone originali, 320/390/430, IT+EN, Corpo umano e Leggi PASS. Nessun overflow. Screenshot test_reports/ui_iter6."
+  - task: "Sfondo Home discreto e picker condiviso con onboarding"
+    implemented: true
+    working: true
+    file: "frontend/src/components/topic-picker.tsx; frontend/src/components/home-backdrop.tsx; frontend/src/hooks/use-topic-preferences.ts; frontend/app/(tabs)/explore.tsx; frontend/app/(tabs)/discover.tsx; frontend/app/onboarding.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "HomeBackdrop riusa onboarding-profile-bg.jpg attenuato con velo adattivo, non intercetta tocchi. TopicPicker + TopicsBackdrop realmente condivisi (mode chips, titolo, hint dinamico, category grid). Categorie autosave via API esistenti, una scrittura alla volta, ripristino scelte e messaggio su errore. Home resetta mazzo anche quando content_modes cambia dopo conferma server. Screenshot Home/Explore 390x844 PASS; prima cattura Explore troppo precoce durante fade hint/media: test aspettare opacità finale e asset caricati. Cambio lingua da impostazioni ha lasciato temporaneamente categorie in EN, verificare prima di classificare bug. Nessuna modifica backend/asset/profile."
+      - working: true
+        agent: "testing"
+        comment: "Iteration_6: backend 5/5; Home dark/light, picker condiviso, formati/conteggi/hint, autosave/persistenza, tap rapidi (singola scrittura), errore save/recupero, onboarding 4 passi e responsive PASS. Categorie dopo cambio lingua corrette, nessun bug persistente. Piccolo gap osservabilità checked-state web."
+      - working: true
+        agent: "main"
+        comment: "Gap risolto: aria-checked esplicito ModeChips/ModeCards e Switch Profilo + label accessibile. Self-test screenshot 20260925_151627: valori iniziali true/true, POST reale lessons-only, Explore false/true e Profilo false/true PASS. Lint PASS, tsc senza errori nei file modificati (errori preesistenti altrove non toccati). Nessuna rigenerazione media o modifica credenziali."
   - task: "Riflesso blu sfumato sui soli bordi delle tre card profilo"
     implemented: true
     working: true
@@ -166,13 +197,16 @@ metadata:
   run_ui: true
 test_plan:
   current_focus:
-    - "Nuovo bordo blu sfumato: screenshot a transizione completata 390×844 e 320×568; contorni seguono card, superfici invariate, nessun glow esterno o overlay che blocca tocchi"
-    - "Screenshot in italiano 390×844 e 320×568/360×800: superfici, leggibilità, nessun overflow"
-    - "Nome, tre scelte genere, apertura/selezione/chiusura età, focus e sfondo fisso"
-    - "Indietro/presentazione, avanti/formati/argomenti, salvataggio profilo al termine"
+    - "Introduzione: pillola 3 badge, originali icone caricate, 320/390/430px, IT/EN, nomi lunghi, Leggi"
+    - "Home sfondo attenuato, tocchi/swipe/scroll/categorie/progresso integri; tema chiaro/scuro"
+    - "Picker condiviso categorie/onboarding: formati stories-only/lessons-only/entrambi; non deselezionare ultimo formato; conteggi/hint corretti; all esclusivo"
+    - "Autosave reale, persistenza dopo riapertura, mazzo Home reset al formato confermato, sync con Profilo, errore rete ripristina stato e avvisa"
+    - "Onboarding completo con profilo facoltativo, formati, argomenti e conferma: flusso invariato, nessuna chiamata AI/TTS/pagamento"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 agent_communication:
+  - agent: "main"
+    message: "Task corrente badge/Home/argomenti (non ritestare vecchi task profilo o intero catalogo). URL https://pause-preview-1.preview.emergentagent.com. Sessione anonima isolata, nessuna password. Lint batch PASS; tsc ha segnalato absoluteFillObject nei due nuovi componenti, corretto con posizionamento esplicito. Vecchi errori tsc altrove non toccati. Verificare flussi e bug in scope senza modificare codice. Non generare storie/copertine/audio (budget v9 esaurito, task sospeso)."
   - agent: "main"
     message: "Riferimenti /app/memory/profile_visual/reference.png e reference-secondary.png. Prima versione in onboarding-profile.before.tsx. Screenshot corretto /root/.emergent/automation_output/20260925_131427/final_20260925_131427.jpeg. Nessun login/credenziali richiesti. Non modificare codice applicativo né chiamare generazione AI/TTS/pagamenti. Usare locale it-IT nel browser e URL esterno .env. Distinguere test browser da tastiera nativa non testabile."
