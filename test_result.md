@@ -105,6 +105,26 @@
 
 user_problem_statement: "Correggere SOLO il design visivo della schermata Dati personali: superfici glass quasi nere più trasparenti, bordi/glow attenuati, icone piccole e controlli integrati. Invariati testi/titolo/CTA/campi/funzioni/navigazione/salvataggio/immagine. Confrontare il mockup allegato."
 frontend:
+  - task: "Riflesso blu sfumato sui soli bordi delle tre card profilo"
+    implemented: true
+    working: true
+    file: "frontend/src/components/onboarding-profile.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Meglio, ma bordi senza effetto blu dell'allegato. Confermati riflessi blu sfumati con piccoli accenti cyan, senza alone neon; interno invariato."
+      - working: "NA"
+        agent: "main"
+        comment: "Sostituito solo bordo nativo uniforme con stroke SVG 1.2px, gradiente blu/cyan, fill none, nessun alone. Superfici/layout/CTA/testi/funzioni invariati. Lint e self-test 390×844 PASS: allineamento esatto, nome/genere/età/Continua, sfondo stabile. Stroke interno per evitare clipping. Rimossa prop SVG accessible=false che provocava warning web. Screenshot finale /root/.emergent/automation_output/20260925_133839/profile-blue-border-final-it.jpeg."
+      - working: true
+        agent: "testing"
+        comment: "Iteration_5: bordi, responsive 390×844 e 320×568, interazioni, no overflow e assenza nuovi warning PASS. Solo gap screenshot italiano del setup browser agente."
+      - working: true
+        agent: "main"
+        comment: "Screenshot italiano già verificato via impostazioni lang-it → reset-onboarding in memory/profile_visual/blue-border-result-it.jpeg; confronto diretto allegato/prima/dopo in blue-border-comparison.png. Nessuna modifica di lingua necessaria. Tutti i controlli richiesti completati."
   - task: "Correzione materiale glass Dati personali e regressione delle interazioni"
     implemented: true
     working: true
@@ -146,6 +166,7 @@ metadata:
   run_ui: true
 test_plan:
   current_focus:
+    - "Nuovo bordo blu sfumato: screenshot a transizione completata 390×844 e 320×568; contorni seguono card, superfici invariate, nessun glow esterno o overlay che blocca tocchi"
     - "Screenshot in italiano 390×844 e 320×568/360×800: superfici, leggibilità, nessun overflow"
     - "Nome, tre scelte genere, apertura/selezione/chiusura età, focus e sfondo fisso"
     - "Indietro/presentazione, avanti/formati/argomenti, salvataggio profilo al termine"

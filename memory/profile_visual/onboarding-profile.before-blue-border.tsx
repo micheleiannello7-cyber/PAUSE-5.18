@@ -10,7 +10,7 @@ import {
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@react-native-vector-icons/ionicons";
-import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Text as SvgText } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useI18n } from "@/src/i18n";
@@ -211,14 +211,10 @@ function GradientWord({ word, fontSize }: { word: string; fontSize: number }) {
 }
 
 // Una sola superficie di vetro scuro: la fotografia resta visibile al suo interno.
-// Il riflesso blu segue solo il contorno, senza alterare il vetro o creare aloni.
+// Nessun filo neon sul bordo inferiore e nessun alone sulle schede a riposo.
 function GlassField({ icon, glow, testID, children }: { icon: string; glow?: boolean; testID: string; children: React.ReactNode }) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
   return (
-    <View style={styles.card} testID={testID} onLayout={({ nativeEvent: { layout } }) => {
-      setSize((prev) => prev.width === layout.width && prev.height === layout.height
-        ? prev : { width: layout.width, height: layout.height });
-    }}>
+    <View style={[styles.card, glow && styles.cardGlow]} testID={testID}>
       <LinearGradient colors={[CARD_TOP, CARD_MID, CARD_BOTTOM]} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />
       <View style={styles.cardRow}>
         <View style={styles.iconWrap}>
@@ -226,29 +222,7 @@ function GlassField({ icon, glow, testID, children }: { icon: string; glow?: boo
         </View>
         <View style={styles.cardBody}>{children}</View>
       </View>
-      {size.width > 0 && <GlassOutline width={size.width} height={size.height} active={glow} id={testID} />}
     </View>
-  );
-}
-
-// Solo stroke: nessun riempimento blu sotto la superficie trasparente.
-// Palette del riflesso fissa in entrambi i temi, come tutto l'onboarding.
-function GlassOutline({ width, height, active, id }: { width: number; height: number; active?: boolean; id: string }) {
-  const gradientId = `${id}-reflection`;
-  return (
-    <Svg width={width} height={height} style={styles.cardOutline} pointerEvents="none" testID={`${id}-border`}>
-      <Defs>
-        <SvgGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0" stopColor="#19AFFF" stopOpacity={0.78} />
-          <Stop offset="0.2" stopColor="#147EC7" stopOpacity={0.58} />
-          <Stop offset="0.48" stopColor="#164A79" stopOpacity={0.5} />
-          <Stop offset="0.76" stopColor="#1963B8" stopOpacity={0.6} />
-          <Stop offset="0.9" stopColor="#25B8F2" stopOpacity={0.78} />
-          <Stop offset="1" stopColor="#326CFF" stopOpacity={0.88} />
-        </SvgGradient>
-      </Defs>
-      <Rect x={1.6} y={1.6} width={width - 3.2} height={height - 3.2} rx={24.4} fill="none" stroke={`url(#${gradientId})`} strokeWidth={1.2} strokeOpacity={active ? 1 : 0.9} />
-    </Svg>
   );
 }
 
@@ -313,13 +287,12 @@ const styles = StyleSheet.create({
     color: ONB.textSecondary, fontFamily: typography.body, fontSize: 14.5, lineHeight: 21, textAlign: "center", marginTop: 12, paddingHorizontal: 6,
     textShadowColor: withAlpha(ONB.bgTop, 0.7), textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8,
   },
-  // Bordo nativo trasparente per preservare esattamente le misure dei contenuti.
-  // Il contorno SVG lo sostituisce senza riempimenti né ombre.
+  // Bordi discreti e vetro senza fondo duplicato né glow permanente.
   card: {
-    borderRadius: 26, overflow: "hidden", borderWidth: 1, borderColor: "transparent", marginBottom: 14,
+    borderRadius: 26, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginBottom: 14,
     backgroundColor: "transparent",
   },
-  cardOutline: { position: "absolute", top: -1, left: -1 },
+  cardGlow: { borderColor: withAlpha(ONB.cyan, 0.34), boxShadow: `0px 0px 16px ${withAlpha(ONB.cyan, 0.05)}` as any },
   cardRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 18, paddingLeft: 16, paddingRight: 16 },
   iconWrap: {
     width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center",

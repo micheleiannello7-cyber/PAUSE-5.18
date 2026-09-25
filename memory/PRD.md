@@ -98,3 +98,12 @@ Mobile Expo app (React Native + FastAPI + MongoDB) that turns idle moments into 
 - Verifica finale a transizione conclusa, in italiano: nome/genere/età/Continua funzionanti; coordinate/dimensioni dello sfondo identiche dopo focus e selezioni e dopo riduzione viewport da 390×844 a 390×544. Questa è una simulazione browser, non una verifica della tastiera fisica iOS/Android.
 - Confronto diretto mockup/prima/dopo archiviato in `memory/profile_visual/comparison.png`: ridotti pannelli blu, opacità e bagliori; fotografia visibile attraverso le superfici. Nessuna dichiarazione pixel-perfect; resta all'utente la valutazione estetica finale.
 - P0 completato. P1: verifica su dispositivo fisico dell'utente. P2: nessuna nuova funzionalità richiesta.
+
+## Rifinitura successiva — solo riflesso blu dei bordi
+- Feedback: «Meglio ma i bordi dei container non hanno quell'effetto blu come nell'allegato». Conferma esplicita: riflesso blu sfumato con piccoli accenti cyan, più evidente ai lati/angoli, **senza alone neon**, interno invariato.
+- In `onboarding-profile.tsx` il bordo uniforme delle sole tre card è sostituito da un contorno SVG 1.2px, gradiente blu/cyan con intensità variabile; `fill="none"`, nessun nuovo riempimento né shadow. Bordo nativo trasparente conserva le esatte misure; stroke leggermente interno per evitare clipping.
+- `GlassOutline` ha ID gradiente univoci per card, `pointerEvents="none"`, dimensioni aggiornate solo quando cambia il layout. Il focus aumenta leggermente l'intensità del contorno senza alone.
+- Interni, icone, opzioni, overlay, immagine fissa, spaziature, titolo, CTA e tutte le funzioni invariati rispetto alla correzione approvata come «meglio».
+- Lint e self-test 390×844 PASS; testing mirato PASS anche a 320×568 (report `test_reports/iteration_5.json`). Bordi allineati, nessun overflow, campi e navigazione funzionanti, sfondo stabile, nessun errore runtime nuovo.
+- Screenshot italiano stabile in `memory/profile_visual/blue-border-result-it.jpeg`; confronto allegato/prima/dopo in `blue-border-comparison.png`. La difficoltà dell'agente testing a forzare la lingua nel browser è solo del suo setup: tramite il selettore esistente `lang-it` e `reset-onboarding` l'italiano è stato verificato correttamente, senza modifiche i18n.
+- P0 completato; P1 resta approvazione visiva sul telefono dell'utente. Nessuna funzionalità nuova richiesta.
